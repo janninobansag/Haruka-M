@@ -9,6 +9,7 @@ const exclusiveTitleSchema = new mongoose.Schema({
   rating: { type: String, default: "—" },
   poster: { type: String, default: null },
   backdrop: { type: String, default: null },
+  isPublished: { type: Boolean, default: true },
   addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
 }, { timestamps: true });
 
