@@ -1,7 +1,7 @@
 const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-export async function getCollection(collection, type) {
-  const response = await fetch(`${apiUrl}/discover/${collection}?type=${type}`);
+export async function getCollection(collection, type, page = 1) {
+  const response = await fetch(`${apiUrl}/discover/${collection}?type=${type}&page=${page}`);
   const data = await response.json();
   if (!response.ok) throw new Error(data.message || "Could not load this collection.");
   return data.results;
@@ -44,9 +44,13 @@ async function adminRequest(path, options = {}) {
 }
 export const getExclusives = () => adminRequest("/exclusives").then((data) => data.results);
 export const createExclusive = (title) => adminRequest("/exclusives", { method: "POST", body: JSON.stringify(title) });
+export const updateExclusivePublication = (id, isPublished) => adminRequest(`/exclusives/${id}`, { method: "PATCH", body: JSON.stringify({ isPublished }) });
 export const deleteExclusive = (id) => adminRequest(`/exclusives/${id}`, { method: "DELETE" });
 export const getUsers = () => adminRequest("/users").then((data) => data.results);
 export const updateUserRole = (id, role) => adminRequest(`/users/${id}/role`, { method: "PATCH", body: JSON.stringify({ role }) });
+export const updateUserStatus = (id, isActive) => adminRequest(`/users/${id}/status`, { method: "PATCH", body: JSON.stringify({ isActive }) });
+export const approveUser = (id) => adminRequest(`/users/${id}/approval`, { method: "PATCH" });
+export const deleteUser = (id) => adminRequest(`/users/${id}`, { method: "DELETE" });
 
 async function libraryRequest(path, options = {}) {
   const response = await fetch(`${apiUrl}/me${path}`, { credentials: "include", ...options, headers: { "Content-Type": "application/json", ...options.headers } });

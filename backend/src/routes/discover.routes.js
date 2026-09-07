@@ -36,7 +36,7 @@ router.get("/:collection", async (req, res, next) => {
 
     if (collection === "haruka-only") {
       if (mongoose.connection.readyState !== 1) return res.json({ collection, type, results: [] });
-      const results = await ExclusiveTitle.find({ mediaType: type }).sort({ createdAt: -1 });
+      const results = await ExclusiveTitle.find({ mediaType: type, $or: [{ isPublished: true }, { isPublished: { $exists: false } }] }).sort({ createdAt: -1 });
       return res.json({ collection, type, results });
     } else if (collection === "trending") {
       data = await tmdb(`/trending/${type}/day`, { page });

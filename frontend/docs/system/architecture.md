@@ -12,7 +12,7 @@ Haruka must only deliver media it owns or is licensed to distribute. Video files
 
 - Responsive, dark, cinematic browsing experience.
 - Sign-up, sign-in, sign-out, and protected sessions.
-- Two roles: `user` and `admin`.
+- Three roles: `user`, `admin`, and `superadmin`.
 - Movie browsing by featured collections and genre.
 - Separate movie and series views for every discovery collection.
 - Search, movie details, trailers, watchlist, and continue-watching progress.
@@ -92,6 +92,7 @@ Haruka/
 ### Netflix-inspired, distinctly Haruka UI
 
 - Dark interface with a Haruka-specific wordmark, color palette, typography, and motion system.
+- The navigation uses the transparent Haruka logo asset at `frontend/public/haruka-logo.png`; the browser-tab icon uses the matching square mark at `frontend/public/haruka-favicon.png`.
 - A hero feature and horizontal content rails make browsing fast, while avoiding Netflix branding, artwork, copy, and exact layouts.
 - Movie cards show poster art, title, maturity rating, runtime, and quick actions.
 - Detail pages provide richer editorial metadata, trailer playback, and related titles.
@@ -124,26 +125,32 @@ TMDB genre IDs can differ by media type. Fetch and cache `/genre/movie/list` and
 
 | Role | Permissions |
 | --- | --- |
-| `user` | Browse, search, view details/trailers, play authorized movies, save watchlist/progress, manage own account. |
-| `admin` | All user permissions plus create, update, publish/unpublish, and remove catalog records; manage genres and user accounts as policy permits. |
+| `user` | After approval: browse, search, view details/trailers, play authorized movies, save watchlist/progress, and manage own account. Before approval: title details and trailers only. |
+| `admin` | All approved-user permissions plus create, update, publish/unpublish, and remove Haruka catalog records. Admin accounts bypass member approval. Can approve, deactivate/reactivate, and permanently delete `user` accounts only. |
+| `superadmin` | All admin permissions. Super-admin accounts bypass member approval. Can manage roles for `user` and `admin` accounts, and approve, deactivate/reactivate, or permanently delete `admin` accounts. |
+
+### Initial super-admin setup
+
+The application never creates a super admin through public registration. After choosing the trusted first account, set its `role` field to `superadmin` once in MongoDB Compass (database `haruka`, collection `users`), then sign out and sign back in. That account can assign roles to lower-level accounts from Admin Studio.
 
 ### Sign-up flow
 
 1. Visitor submits name, email, and password at `/signup`.
-2. API validates input, ensures unique email, hashes password with bcrypt, and creates a user with role `user`.
-3. API creates a signed session token and returns the safe user profile.
-4. Browser receives the session in a secure HTTP-only cookie and redirects to `/browse`.
+2. API validates input, ensures unique email, hashes password with bcrypt, and creates a user with role `user` and `approvalStatus: 'pending'`.
+3. API returns an awaiting-approval response without creating a session.
+4. An admin or super admin approves the regular-user account from Admin Studio before the person can sign in. Admin and super-admin accounts bypass this member-approval check.
 
 ### Sign-in flow
 
 1. User submits email and password at `/signin`.
 2. API finds the user and compares password to the stored bcrypt hash.
-3. API issues a session token in a secure HTTP-only cookie and returns safe profile and role.
+3. API rejects pending accounts with an awaiting-approval response; approved accounts receive a session token in a secure HTTP-only cookie and safe profile and role.
 4. Frontend restores the session on startup with `GET /api/auth/me`.
 
 ### Session policy
 
 - Use short-lived JWT access tokens in `HttpOnly`, `Secure`, `SameSite=Lax` cookies in production.
+- When Remember me is selected at sign-in, issue a 30-day JWT in a persistent `HttpOnly` cookie. Otherwise, use a browser-session cookie with a one-day JWT. Never store a raw password or reusable credential in browser storage.
 - Add refresh-token rotation/revocation for persistent sessions.
 - Never store plaintext passwords or authentication tokens in MongoDB, localStorage, logs, or responses.
 - Enforce HTTPS and CORS limited to Haruka's frontend origin in production.
@@ -155,8 +162,9 @@ Request → security headers/CORS/JSON → rate limit → authenticate → autho
         → validate → controller → service → MongoDB/storage → error handler
 ```
 
-- `requireAuth` allows authenticated `user` and `admin` accounts.
-- `requireRole('admin')` protects catalog writes and all `/admin` API actions.
+- `requireAuth` allows only active, approved authenticated accounts; a pending account cannot use protected APIs even if it has a stale session cookie.
+- `requireRole('admin')` protects catalog writes and all `/admin` API actions; `superadmin` satisfies that minimum role.
+- User-management routes also verify the target account's role. An admin can only manage a `user`; a super admin can manage `user` and `admin` accounts. Super-admin accounts are protected from peer modification in Admin Studio.
 - Ownership checks restrict watchlists, progress, and account updates to their owner.
 - The API always checks roles; hiding an admin control in the frontend is not security.
 
@@ -217,7 +225,8 @@ TMDB_IMAGE_BASE_URL=https://image.tmdb.org/t/p
 ```js
 {
   _id, name, email, passwordHash,
-  role, // 'user' | 'admin'; default 'user'
+  role, // 'user' | 'admin' | 'superadmin'; default 'user'
+  approvalStatus, // 'pending' | 'approved'; default 'pending'
   avatarUrl, isActive, createdAt, updatedAt
 }
 ```
@@ -342,9 +351,12 @@ The endpoints below are currently implemented in the Haruka codebase. They are t
 | DELETE | `/me/watchlist/:tmdbId?type=movie|tv` | User/Admin | Removes a title owned by the signed-in user. |
 | GET | `/admin/exclusives` | Admin | Lists Haruka-exclusive titles. |
 | POST | `/admin/exclusives` | Admin | Imports a title from TMDB into the Haruka-exclusive collection. |
+| PATCH | `/admin/exclusives/:id` | Admin | Publishes or unpublishes an existing Haruka-exclusive title. |
 | DELETE | `/admin/exclusives/:id` | Admin | Removes a Haruka-exclusive title. |
 | GET | `/admin/users` | Admin | Lists safe Haruka user fields for role management. |
-| PATCH | `/admin/users/:id/role` | Admin | Promotes or demotes another user's role; an admin cannot change their own role. |
+| PATCH | `/admin/users/:id/role` | Super Admin | Changes the role of a `user` or `admin`; super-admin accounts are protected. |
+| PATCH | `/admin/users/:id/status` | Admin/Super Admin | Admins may change a `user`; super admins may also change an `admin`. A deactivated user cannot authenticate. |
+| DELETE | `/admin/users/:id` | Admin/Super Admin | Deletes an allowed lower-role account and its Haruka watchlist and exploration history. |
 
 ### Implemented MongoDB collections
 
@@ -352,19 +364,21 @@ The endpoints below are currently implemented in the Haruka codebase. They are t
 | --- | --- | --- |
 | `users` | Haruka website accounts and roles. | Email is unique; public sign-up always creates `user`. |
 | `watchlistitems` | A user's saved TMDB titles. | Unique per `userId`, `tmdbId`, and media type. |
-| `recentlyvieweds` | A user's private title-exploration history. | Unique per `userId`, `tmdbId`, and media type; newest items appear first. |
+| `recentlyvieweds` | A user's private title-exploration history. | Unique per `userId`, `tmdbId`, and media type; newest items appear first and expire 10 days after the most recent open. |
 | `exclusivetitles` | Admin-managed “Only on Haruka” catalog labels. | Unique per TMDB title and media type. |
 
 ### Current frontend features
 
 - Dark, responsive Haruka browse interface with movie/series switch.
+- Optional muted, looping hero video loaded from `frontend/public/hero.mp4`, with the featured TMDB backdrop as a fallback.
 - TMDB-backed Trending Today, Top Rated, Comedy, Horror, and Only on Haruka rails.
+- Explore all collection view with a paginated title grid for TMDB-backed rails.
 - Search overlay with movie/series filtering and a 350 ms debounce.
 - Sign-up/sign-in modal, cookie-backed session restoration, and sign-out control.
 - Account panel for display-name changes, password changes, role visibility, and sign-out.
 - My List modal for saving and removing a signed-in user's titles.
 - Recently Explored rail for a signed-in user's private title-opening history.
-- Admin Studio, visible only to a signed-in `admin`, for managing Only on Haruka entries and other users' roles.
+- Admin Studio, visible only to a signed-in `admin`, for adding, publishing/unpublishing, and removing Only on Haruka entries, plus managing other users' roles.
 
 ### Current limitations
 
@@ -394,6 +408,10 @@ For production, use adaptive HLS or DASH, CDN delivery, short expiration times, 
 - Define account deletion/data-retention rules before launch.
 
 ## 12. Deployment environments
+
+### Frontend build note
+
+Haruka uses Vite's `runner` configuration loader for development and production builds. This avoids an esbuild directory-access failure that can occur when the project is located inside a Windows OneDrive path. Run `npm run build --prefix frontend` to create the production bundle.
 
 | Environment | Purpose | Notes |
 | --- | --- | --- |

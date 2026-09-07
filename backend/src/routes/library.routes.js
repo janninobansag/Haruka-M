@@ -14,7 +14,12 @@ router.get("/watchlist", async (req, res, next) => {
 });
 
 router.get("/recent", async (req, res, next) => {
-  try { res.json({ results: await RecentlyViewed.find({ userId: req.user._id }).sort({ updatedAt: -1 }).limit(20) }); }
+  try {
+    const now = new Date();
+    const cutoff = new Date(now - 10 * 24 * 60 * 60 * 1000);
+    await RecentlyViewed.deleteMany({ userId: req.user._id, $or: [{ expiresAt: { $lte: now } }, { expiresAt: { $exists: false }, updatedAt: { $lt: cutoff } }] });
+    res.json({ results: await RecentlyViewed.find({ userId: req.user._id, $or: [{ expiresAt: { $gt: now } }, { expiresAt: { $exists: false } }] }).sort({ updatedAt: -1 }).limit(20) });
+  }
   catch (error) { next(error); }
 });
 
@@ -23,7 +28,7 @@ router.put("/recent", async (req, res, next) => {
     const { id, mediaType, title, overview = "", year = "", rating = "—", poster = null, backdrop = null } = req.body;
     const tmdbId = Number(id);
     if (!Number.isInteger(tmdbId) || tmdbId < 1 || !["movie", "tv"].includes(mediaType) || !title?.trim()) return res.status(400).json({ message: "Provide a valid title to save in history.", code: "INVALID_INPUT" });
-    await RecentlyViewed.findOneAndUpdate({ userId: req.user._id, tmdbId, mediaType }, { title: title.trim(), overview, year, rating, poster, backdrop }, { upsert: true, new: true, setDefaultsOnInsert: true });
+    await RecentlyViewed.findOneAndUpdate({ userId: req.user._id, tmdbId, mediaType }, { title: title.trim(), overview, year, rating, poster, backdrop, expiresAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000) }, { upsert: true, new: true, setDefaultsOnInsert: true });
     res.status(204).end();
   } catch (error) { next(error); }
 });
