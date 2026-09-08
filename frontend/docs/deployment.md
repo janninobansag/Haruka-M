@@ -1,0 +1,86 @@
+# Haruka deployment guide
+
+This guide deploys the three Haruka clients/services separately:
+
+- MongoDB Atlas remains the database.
+- Render (or another Node host) runs `backend/`.
+- Vercel (or another static host) serves `frontend/`.
+- Expo Application Services (EAS) builds and submits `mobile/`.
+
+## Before pushing to GitHub
+
+1. Confirm `.env` files are ignored and are not tracked by Git.
+2. Rotate any MongoDB password, TMDB key, or JWT secret that has been exposed. Generate a long random production `JWT_SECRET`.
+3. Use a least-privilege MongoDB database user for the deployed API.
+4. Remove any unlicensed media embed before a public release. Deploy only trailers or media you are licensed to distribute.
+
+## 1. Atlas network access
+
+In Atlas, open **Database & Network Access → IP Access List** and allow the outbound address(es) of your API host. If the host uses dynamic outbound addresses, its provider may require a broader temporary rule; prefer fixed IPs, private networking, or a private endpoint for production. Keep TLS enabled and do not expose the database user credentials to either frontend.
+
+## 2. Deploy the backend
+
+Create a Render Web Service connected to the GitHub repository:
+
+- Root directory: `backend`
+- Build command: `npm install`
+- Start command: `npm start`
+
+Add these Render environment variables:
+
+```text
+NODE_ENV=production
+MONGODB_URI=<your Atlas connection string>
+JWT_SECRET=<long random production secret>
+TMDB_API_KEY=<your TMDB API key>
+TMDB_BASE_URL=https://api.themoviedb.org/3
+TMDB_IMAGE_BASE_URL=https://image.tmdb.org/t/p
+CLIENT_URL=https://<your-vercel-domain>
+```
+
+Do not hard-code `PORT`; Render provides it. Verify `https://<your-api-domain>/api/health` returns a healthy Haruka API response.
+
+## 3. Deploy the web frontend
+
+Create a Vercel project connected to the same repository:
+
+- Root directory: `frontend`
+- Build command: `npm run build`
+- Output directory: `dist`
+
+Add this Vercel environment variable:
+
+```text
+VITE_API_URL=https://<your-api-domain>/api
+```
+
+After the first deployment, copy the final Vercel URL into the backend `CLIENT_URL`, then redeploy the backend. Test sign-in, approval, My List, Admin Studio, and trailer playback from the deployed web URL.
+
+## 4. Build the mobile app
+
+In `mobile/.env` for local testing, use the deployed API:
+
+```text
+EXPO_PUBLIC_API_URL=https://<your-api-domain>/api
+```
+
+For store builds, add the same variable to the EAS production environment, then from `mobile/` run:
+
+```powershell
+npx eas-cli@latest login
+npx eas-cli@latest build:configure
+npx eas-cli@latest build --platform android --profile production
+npx eas-cli@latest build --platform ios --profile production
+```
+
+Submit only after testing the production API and confirming that the app contains permitted content. EAS supports cloud builds and store submission; Android and iOS store developer accounts are separate requirements.
+
+## Smoke-test checklist
+
+- `GET /api/health` succeeds over HTTPS.
+- Atlas connects without local-IP assumptions.
+- Web discovery uses the deployed API URL.
+- A new member remains pending until Admin Studio approves the account.
+- Admin and super-admin restrictions still apply.
+- Mobile sign-in restores its SecureStore token and My List loads.
+- No `.env`, password, TMDB key, or JWT secret appears in the repository or client bundle.

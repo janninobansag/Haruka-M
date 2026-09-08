@@ -6,7 +6,8 @@ export const isApprovedAccount = (user) => user?.role !== "user" || user?.approv
 
 export async function requireAuth(req, res, next) {
   try {
-    const token = req.cookies.haruka_session;
+    const bearerToken = req.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1];
+    const token = req.cookies.haruka_session || bearerToken;
     if (!token) return res.status(401).json({ message: "Sign in is required.", code: "UNAUTHENTICATED" });
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(payload.sub);

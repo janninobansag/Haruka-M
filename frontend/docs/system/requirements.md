@@ -7,6 +7,10 @@
 - Visitors and pending accounts can browse title information and trailers only.
 - Approved users can sign in/out, browse, search, manage a watchlist, play authorized content, and resume viewing.
 - The sign-in form provides a Remember me option that keeps a secure session for 30 days without storing the email or password in browser storage.
+- The native mobile companion provides movie/series discovery, official trailer links, sign-up/sign-in, My List, and Recently Explored updates through the Haruka API.
+- Mobile sign-in returns a 30-day bearer token only after the same approval and active-account checks as web sign-in; the token is stored only in Expo SecureStore.
+- The mobile Discover view presents the featured title in a full-width cinematic hero with title metadata, synopsis, and an Explore title action.
+- Signed-in mobile users have a profile icon for profile updates, password changes, My List access, and sign-out. Admins and super admins can open the mobile Admin Studio; server-side role rules remain authoritative.
 - Every browser registration becomes `user`; clients must never choose the `admin` or `superadmin` role.
 - Admins and super admins can add, publish/unpublish, and remove Haruka-exclusive catalog labels.
 - Draft and archived movies are not public or playable.

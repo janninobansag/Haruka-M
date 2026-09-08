@@ -17,6 +17,7 @@ function startSession(res, user, rememberMe) {
   const token = jwt.sign({ sub: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: rememberMe ? "30d" : "1d" });
   res.cookie("haruka_session", token, cookieOptions(rememberMe));
 }
+const createMobileToken = (user) => jwt.sign({ sub: user._id, role: user.role, client: "mobile" }, process.env.JWT_SECRET, { expiresIn: "30d" });
 
 router.post("/signup", requireDatabase, async (req, res, next) => {
   try {
@@ -40,6 +41,16 @@ router.post("/signin", requireDatabase, async (req, res, next) => {
     const rememberMe = req.body.rememberMe === true;
     startSession(res, user, rememberMe);
     res.json({ user: safeUser(user) });
+  } catch (error) { next(error); }
+});
+
+router.post("/mobile/signin", requireDatabase, async (req, res, next) => {
+  try {
+    const email = req.body.email?.trim().toLowerCase();
+    const user = await User.findOne({ email }).select("+passwordHash");
+    if (!user || !user.isActive || !(await bcrypt.compare(req.body.password || "", user.passwordHash))) return res.status(401).json({ message: "Email or password is incorrect.", code: "INVALID_CREDENTIALS" });
+    if (!isApprovedAccount(user)) return res.status(403).json({ message: "Your account is awaiting approval from an administrator.", code: "ACCOUNT_PENDING_APPROVAL" });
+    res.json({ user: safeUser(user), token: createMobileToken(user) });
   } catch (error) { next(error); }
 });
 

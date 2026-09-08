@@ -8,3 +8,4 @@
 | 4. Personal library & curation | My List, 10-day-retained Recently Explored history, and an admin-managed Only on Haruka catalog with publication controls | Complete |
 | 5. Streaming experience | Licensed player, viewing progress, Continue Watching, media delivery | Planned |
 | 6. Release | Frontend production build pipeline verified; automated tests, deployment, monitoring, backup, security review, and final documentation remain planned | In progress |
+| 7. Mobile companion | Expo/React Native project, native discovery rails, title detail sheet, official trailer links, secure sign-up/sign-in, approval-aware mobile tokens, My List add/remove actions, Recently Explored updates, and mobile API environment configuration. | Complete |
