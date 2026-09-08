@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "Haruka",
+    "slug": "haruka-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#08111f"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.haruka.mobile"
+    },
+    "android": {
+      "package": "com.haruka.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#08111f"
+      }
+    },
+    "web": {
+      "favicon": "./assets/icon.png"
+    }
+  }
+}
