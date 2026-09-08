@@ -80,6 +80,7 @@ Submit only after testing the production API and confirming that the app contain
 - `GET /api/health` succeeds over HTTPS.
 - Atlas connects without local-IP assumptions.
 - Web discovery uses the deployed API URL.
+- Web title playback requests use `VITE_API_URL` rather than a localhost fallback after a production rebuild.
 - A new member remains pending until Admin Studio approves the account.
 - Admin and super-admin restrictions still apply.
 - Mobile sign-in restores its SecureStore token and My List loads.
