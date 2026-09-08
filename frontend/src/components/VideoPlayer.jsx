@@ -13,12 +13,14 @@ const VideoPlayer = () => {
       try {
         setLoading(true);
         
-        const baseUrl = 'http://localhost:5000';
+        // Vite injects the deployed API URL at build time. Keep the local
+        // fallback for development, but never hardcode localhost in production.
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
         let url;
         if (season && episode) {
-          url = `${baseUrl}/api/video/embed/tv/${tmdbId}/${season}/${episode}?sub=en`;
+          url = `${apiUrl}/video/embed/tv/${tmdbId}/${season}/${episode}?sub=en`;
         } else {
-          url = `${baseUrl}/api/video/embed/movie/${tmdbId}?sub=en`;
+          url = `${apiUrl}/video/embed/movie/${tmdbId}?sub=en`;
         }
 
         console.log("Fetching:", url);
