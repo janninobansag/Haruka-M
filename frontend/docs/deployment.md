@@ -81,6 +81,7 @@ Submit only after testing the production API and confirming that the app contain
 - Atlas connects without local-IP assumptions.
 - Web discovery uses the deployed API URL.
 - Web title playback requests use `VITE_API_URL` rather than a localhost fallback after a production rebuild.
+- Cross-site production sessions use secure `SameSite=None` cookies so the Vercel frontend can authenticate with the Render API.
 - A new member remains pending until Admin Studio approves the account.
 - Admin and super-admin restrictions still apply.
 - Mobile sign-in restores its SecureStore token and My List loads.

@@ -7,10 +7,13 @@ import { requireDatabase } from "../middleware/database.middleware.js";
 
 const router = Router();
 const safeUser = (user) => ({ id: user._id, name: user.name, email: user.email, role: user.role, approvalStatus: isApprovedAccount(user) ? "approved" : "pending" });
+const isProduction = process.env.NODE_ENV === "production";
 const cookieOptions = (rememberMe) => ({
   httpOnly: true,
-  sameSite: "lax",
-  secure: process.env.NODE_ENV === "production",
+  // Vercel and Render are separate sites, so production fetches need a
+  // cross-site cookie. HTTPS is required when SameSite=None is used.
+  sameSite: isProduction ? "none" : "lax",
+  secure: isProduction,
   ...(rememberMe ? { maxAge: 1000 * 60 * 60 * 24 * 30 } : {})
 });
 function startSession(res, user, rememberMe) {
@@ -54,7 +57,7 @@ router.post("/mobile/signin", requireDatabase, async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
-router.post("/signout", (_, res) => { res.clearCookie("haruka_session", { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production" }); res.status(204).end(); });
+router.post("/signout", (_, res) => { res.clearCookie("haruka_session", { httpOnly: true, sameSite: isProduction ? "none" : "lax", secure: isProduction }); res.status(204).end(); });
 router.get("/me", requireDatabase, requireAuth, (req, res) => res.json({ user: safeUser(req.user) }));
 router.patch("/me", requireDatabase, requireAuth, async (req, res, next) => {
   try {
