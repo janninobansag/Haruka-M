@@ -8,6 +8,8 @@ This guide deploys the three Haruka clients/services separately:
 - The web frontend is installable as a PWA from supported browsers; its service worker caches only the app shell and never caches API responses.
 - The navbar's **Install app** action opens the browser install prompt when available and explains the manual Add to Home Screen path on unsupported browsers such as iOS Safari.
 - On narrow screens, the navbar collapses into a hamburger menu containing Discover, My List, Install app, and permitted Admin Studio actions.
+
+If Brave shows “Failed to read the app data. Cannot start the app,” remove the old Haruka installed app/shortcut, clear the site's stored data, reload the HTTPS site, and install it again. The PWA manifest uses a stable `/` app ID so future updates resolve to the same installed app.
 - Expo Application Services (EAS) builds and submits `mobile/`.
 
 ## Before pushing to GitHub
