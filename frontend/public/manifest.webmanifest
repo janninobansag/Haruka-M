@@ -1,6 +1,7 @@
 {
   "name": "Haruka",
   "short_name": "Haruka",
+  "id": "/",
   "description": "A curated cinematic discovery space.",
   "start_url": "/",
   "scope": "/",

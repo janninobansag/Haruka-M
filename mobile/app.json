@@ -6,9 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "splash": {
-      "backgroundColor": "#08111f"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.haruka.mobile"
@@ -22,6 +19,11 @@
     },
     "web": {
       "favicon": "./assets/icon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9e9bcb71-8e07-4e16-9c4e-77846987be5d"
+      }
     }
   }
 }
