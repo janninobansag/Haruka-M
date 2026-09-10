@@ -5,6 +5,7 @@ This guide deploys the three Haruka clients/services separately:
 - MongoDB Atlas remains the database.
 - Render (or another Node host) runs `backend/`.
 - Vercel (or another static host) serves `frontend/`.
+- The web frontend is installable as a PWA from supported browsers; its service worker caches only the app shell and never caches API responses.
 - Expo Application Services (EAS) builds and submits `mobile/`.
 
 ## Before pushing to GitHub
@@ -72,6 +73,8 @@ npx eas-cli@latest build:configure
 npx eas-cli@latest build --platform android --profile production
 npx eas-cli@latest build --platform ios --profile production
 ```
+
+For preview builds, also add `EXPO_PUBLIC_API_URL=https://<your-api-domain>/api` to the EAS Preview environment (or run the build locally with `mobile/.env`). EAS build-time variables are embedded in the binary; changing `.env` requires a new build.
 
 Submit only after testing the production API and confirming that the app contains permitted content. EAS supports cloud builds and store submission; Android and iOS store developer accounts are separate requirements.
 
