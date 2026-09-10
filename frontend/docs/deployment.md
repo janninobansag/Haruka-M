@@ -1,6 +1,6 @@
 # Haruka deployment guide
 
-This guide deploys the three Haruka clients/services separately:
+This guide deploys the Haruka web client and API:
 
 - MongoDB Atlas remains the database.
 - Render (or another Node host) runs `backend/`.
@@ -10,7 +10,6 @@ This guide deploys the three Haruka clients/services separately:
 - On narrow screens, the navbar collapses into a hamburger menu containing Discover, My List, Install app, and permitted Admin Studio actions.
 
 If Brave shows “Failed to read the app data. Cannot start the app,” remove the old Haruka installed app/shortcut, clear the site's stored data, reload the HTTPS site, and install it again. The PWA manifest uses a stable `/` app ID so future updates resolve to the same installed app.
-- Expo Application Services (EAS) builds and submits `mobile/`.
 
 ## Before pushing to GitHub
 
@@ -59,30 +58,9 @@ Add this Vercel environment variable:
 VITE_API_URL=/api
 ```
 
-The Vercel rewrite proxies `/api/*` to the Render API. Keeping web API calls same-origin allows session cookies to persist in browsers that restrict third-party cookies, including Brave. The mobile app continues using the full Render URL in `EXPO_PUBLIC_API_URL`.
+The Vercel rewrite proxies `/api/*` to the Render API. Keeping web API calls same-origin allows session cookies to persist in browsers that restrict third-party cookies, including Brave.
 
 After the first deployment, copy the final Vercel URL into the backend `CLIENT_URL`, then redeploy the backend. Test sign-in, approval, My List, Admin Studio, and trailer playback from the deployed web URL.
-
-## 4. Build the mobile app
-
-In `mobile/.env` for local testing, use the deployed API:
-
-```text
-EXPO_PUBLIC_API_URL=https://<your-api-domain>/api
-```
-
-For store builds, add the same variable to the EAS production environment, then from `mobile/` run:
-
-```powershell
-npx eas-cli@latest login
-npx eas-cli@latest build:configure
-npx eas-cli@latest build --platform android --profile production
-npx eas-cli@latest build --platform ios --profile production
-```
-
-For preview builds, also add `EXPO_PUBLIC_API_URL=https://<your-api-domain>/api` to the EAS Preview environment (or run the build locally with `mobile/.env`). EAS build-time variables are embedded in the binary; changing `.env` requires a new build.
-
-Submit only after testing the production API and confirming that the app contains permitted content. EAS supports cloud builds and store submission; Android and iOS store developer accounts are separate requirements.
 
 ## Smoke-test checklist
 
@@ -93,5 +71,4 @@ Submit only after testing the production API and confirming that the app contain
 - Cross-site production sessions use secure `SameSite=None` cookies so the Vercel frontend can authenticate with the Render API.
 - A new member remains pending until Admin Studio approves the account.
 - Admin and super-admin restrictions still apply.
-- Mobile sign-in restores its SecureStore token and My List loads.
 - No `.env`, password, TMDB key, or JWT secret appears in the repository or client bundle.
