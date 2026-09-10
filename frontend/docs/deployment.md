@@ -7,6 +7,7 @@ This guide deploys the three Haruka clients/services separately:
 - Vercel (or another static host) serves `frontend/`.
 - The web frontend is installable as a PWA from supported browsers; its service worker caches only the app shell and never caches API responses.
 - The navbar's **Install app** action opens the browser install prompt when available and explains the manual Add to Home Screen path on unsupported browsers such as iOS Safari.
+- On narrow screens, the navbar collapses into a hamburger menu containing Discover, My List, Install app, and permitted Admin Studio actions.
 - Expo Application Services (EAS) builds and submits `mobile/`.
 
 ## Before pushing to GitHub
