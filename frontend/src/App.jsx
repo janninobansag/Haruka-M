@@ -36,6 +36,7 @@ function HomePage() {
   const [accountOpen, setAccountOpen] = useState(false);
   const [recentTitles, setRecentTitles] = useState([]);
   const [collectionView, setCollectionView] = useState(null);
+  const [installPrompt, setInstallPrompt] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => { getSession().then(setUser).catch(() => setUser(null)); }, []);
@@ -49,6 +50,20 @@ function HomePage() {
       .catch((requestError) => active && setError(requestError.message));
     return () => { active = false; };
   }, [type, catalogVersion]);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+    };
+    const handleInstalled = () => setInstallPrompt(null);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleInstalled);
+    };
+  }, []);
 
   const feature = catalog.trending?.[0];
   const signOut = async () => { await auth("signout", {}); setUser(null); setAccountOpen(false); };
@@ -71,8 +86,18 @@ function HomePage() {
     }
   };
 
+  const installApp = async () => {
+    if (!installPrompt) {
+      window.alert("To install Haruka, use your browser menu and choose 'Add to Home screen' or 'Install app'.");
+      return;
+    }
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    setInstallPrompt(null);
+  };
+
   return <main>
-    <header className="nav"><a className="brand" href="#top" aria-label="Haruka home"><img src="/haruka-logo.png" alt="Haruka Cinema" /></a><nav><a href="#browse">Discover</a><button className="nav-list" onClick={() => user ? setListOpen(true) : setAuthMode("signin")}>My List</button></nav><div className="nav-actions"><button className="search" onClick={() => setSearchOpen(true)} aria-label="Search">⌕</button>{user ? <>{["admin", "superadmin"].includes(user.role) && <button className="admin-link" onClick={() => setAdminOpen(true)}>Admin Studio</button>}<button className="account-trigger" onClick={() => setAccountOpen(true)} title="Open account"><span>Hi, {user.name.split(" ")[0]}</span><span className="account-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="8" r="3.5" /><path d="M5.5 20c.7-3.5 3-5.3 6.5-5.3s5.8 1.8 6.5 5.3" /></svg></span></button></> : <button className="sign-in" onClick={() => setAuthMode("signin")}>Sign in</button>}</div></header>
+    <header className="nav"><a className="brand" href="#top" aria-label="Haruka home"><img src="/haruka-logo.png" alt="Haruka Cinema" /></a><nav><a href="#browse">Discover</a><button className="nav-list" onClick={() => user ? setListOpen(true) : setAuthMode("signin")}>My List</button></nav><div className="nav-actions"><button className="install-button" onClick={installApp}>Install app</button><button className="search" onClick={() => setSearchOpen(true)} aria-label="Search">⌕</button>{user ? <>{["admin", "superadmin"].includes(user.role) && <button className="admin-link" onClick={() => setAdminOpen(true)}>Admin Studio</button>}<button className="account-trigger" onClick={() => setAccountOpen(true)} title="Open account"><span>Hi, {user.name.split(" ")[0]}</span><span className="account-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="8" r="3.5" /><path d="M5.5 20c.7-3.5 3-5.3 6.5-5.3s5.8 1.8 6.5 5.3" /></svg></span></button></> : <button className="sign-in" onClick={() => setAuthMode("signin")}>Sign in</button>}</div></header>
     <section className="hero" id="top" style={feature?.backdrop ? { backgroundImage: `url(${feature.backdrop})` } : {}}><video className="hero-video" autoPlay muted loop playsInline poster={feature?.backdrop || undefined}><source src="/hero.mp4" type="video/mp4" /></video><div className="hero-overlay" /><div className="hero-content"><p className="eyebrow">A NEW KIND OF NIGHT IN</p><h1>{feature?.title || "Stories worth staying up for."}</h1><p>{feature?.overview || "Haruka brings your favorite worlds together in one calm, cinematic space."}</p><div className="hero-actions"><button className="play-button" onClick={() => openTitle(feature)}>▶ Explore title</button><button className="more-button" onClick={() => user ? setListOpen(true) : setAuthMode("signup")}>＋ {user ? "My List" : "Join Haruka"}</button></div></div><div className="hero-orbit"><i /><i /><i /></div></section>
     <section className="switcher-wrap" id="browse"><div className="content-switcher"><span>Show me</span><button className={type === "movie" ? "active" : ""} onClick={() => setType("movie")}>Movies</button><button className={type === "tv" ? "active" : ""} onClick={() => setType("tv")}>Series</button></div></section>
     <div className="catalog" id="collections">{user && recentTitles.length > 0 && <MovieRail title="Recently Explored" label="PICK UP WHERE YOU LEFT OFF" movies={recentTitles.map((title) => ({ ...title, id: title.tmdbId }))} loading={false} error="" onSelect={openTitle} />}{rails.map(([key, title, label]) => <MovieRail key={key} title={title} label={label} movies={catalog[key] || []} loading={!error && !catalog[key]} error={error} onSelect={openTitle} onExploreAll={() => setCollectionView({ key, title, label, movies: catalog[key] || [] })} />)}</div>
