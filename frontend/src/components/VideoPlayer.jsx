@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 const VideoPlayer = () => {
@@ -7,6 +7,17 @@ const VideoPlayer = () => {
   const [embedUrl, setEmbedUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const playerRef = useRef(null);
+
+  useEffect(() => {
+    const updateFullscreenState = () => {
+      setIsFullscreen(document.fullscreenElement === playerRef.current);
+    };
+
+    document.addEventListener("fullscreenchange", updateFullscreenState);
+    return () => document.removeEventListener("fullscreenchange", updateFullscreenState);
+  }, []);
 
   useEffect(() => {
     const fetchVideo = async () => {
@@ -62,6 +73,18 @@ const VideoPlayer = () => {
     }
   }, [tmdbId, season, episode, navigate]);
 
+  const toggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await playerRef.current?.requestFullscreen();
+      }
+    } catch (fullscreenError) {
+      console.error("Unable to enter fullscreen:", fullscreenError);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ 
@@ -111,33 +134,24 @@ const VideoPlayer = () => {
   }
 
   return (
-    <div style={{ width: '100%', height: '100vh', background: '#000', position: 'relative' }}>
+    <div ref={playerRef} className="video-player-page">
       <button 
         onClick={() => navigate("/")}
-        style={{ 
-          position: 'absolute', 
-          top: '20px', 
-          left: '20px', 
-          zIndex: 1000, 
-          background: 'rgba(0,0,0,0.7)',
-          color: 'white',
-          border: 'none',
-          padding: '10px 20px',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          fontSize: '16px'
-        }}
+        className="video-player-back"
       >
         ← Back to Home
+      </button>
+      <button
+        onClick={toggleFullscreen}
+        className="video-player-fullscreen"
+        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+      >
+        {isFullscreen ? "Exit fullscreen" : "Fullscreen"}
       </button>
       {embedUrl && (
         <iframe
           src={embedUrl}
-          style={{
-            width: '100%',
-            height: '100%',
-            border: 'none'
-          }}
+          className="video-player-frame"
           allowFullScreen
           frameBorder="0"
           title="Video Player"
