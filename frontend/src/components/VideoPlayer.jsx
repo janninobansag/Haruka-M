@@ -58,6 +58,26 @@ const VideoPlayer = () => {
     }
   }, [tmdbId, season, episode, navigate]);
 
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const originalMargin = document.body.style.margin;
+    document.body.style.overflow = 'hidden';
+    document.body.style.margin = '0';
+    document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.margin = '0';
+    document.documentElement.style.height = '100%';
+    document.body.style.height = '100%';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.margin = originalMargin;
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.margin = '';
+      document.documentElement.style.height = '';
+      document.body.style.height = '';
+    };
+  }, []);
+
   if (loading) {
     return (
       <div style={{ 
@@ -67,7 +87,9 @@ const VideoPlayer = () => {
         height: '100vh', 
         background: '#0a0a0a', 
         color: 'white',
-        fontSize: '24px'
+        fontSize: '24px',
+        margin: 0,
+        padding: 0
       }}>
         Loading video...
       </div>
@@ -83,7 +105,9 @@ const VideoPlayer = () => {
         alignItems: 'center', 
         height: '100vh', 
         background: '#0a0a0a', 
-        color: 'white'
+        color: 'white',
+        margin: 0,
+        padding: 0
       }}>
         <div style={{ fontSize: '24px', marginBottom: '20px', color: 'red' }}>
           Error: {error}
@@ -111,10 +135,14 @@ const VideoPlayer = () => {
       position: 'fixed',
       top: 0,
       left: 0,
+      right: 0,
+      bottom: 0,
       width: '100vw', 
       height: '100vh', 
       background: '#000', 
-      overflow: 'hidden'
+      overflow: 'hidden',
+      margin: 0,
+      padding: 0
     }}>
       <button 
         onClick={() => navigate("/")}
@@ -152,7 +180,8 @@ const VideoPlayer = () => {
             left: 0,
             width: '100%',
             height: '100%',
-            border: 'none'
+            border: 'none',
+            display: 'block'
           }}
           allowFullScreen
           frameBorder="0"
