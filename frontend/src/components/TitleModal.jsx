@@ -29,8 +29,8 @@ export default function TitleModal({ movie, onClose, onSave, onTrailer, onWatchN
           {details.cast?.length > 0 && <p><b>Cast</b>{details.cast.join(" · ")}</p>}
         </div>}
         <div className="hero-actions">
-          <button className="play-button" onClick={() => onTrailer(movie)}>▶ Watch trailer</button>
-          {canWatch && <button className="play-button" onClick={() => onWatchNow?.(movie)}>▶ Watch Now</button>}
+          <button className="play-button" onClick={() => onTrailer(movie)}>Watch trailer</button>
+          {canWatch && <button className="play-button" onClick={() => onWatchNow?.(movie)}>Watch Now</button>}
           {signedIn && <button className="more-button" onClick={() => onSave(movie)}>＋ My List</button>}
         </div>
       </div>
