@@ -1,4 +1,4 @@
-const CACHE_NAME = "haruka-shell-v1";
+const CACHE_NAME = "haruka-shell-v2";
 const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/haruka-favicon.png"];
 
 self.addEventListener("install", (event) => {
@@ -8,7 +8,10 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+    caches.keys().then((keys) => {
+      const staleKeys = keys.filter((key) => key !== CACHE_NAME);
+      return Promise.all(staleKeys.map((key) => caches.delete(key)));
+    })
   );
   self.clients.claim();
 });
