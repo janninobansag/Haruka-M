@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
 const VideoPlayer = () => {
@@ -7,25 +7,12 @@ const VideoPlayer = () => {
   const [embedUrl, setEmbedUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const playerRef = useRef(null);
-
-  useEffect(() => {
-    const updateFullscreenState = () => {
-      setIsFullscreen(document.fullscreenElement === playerRef.current);
-    };
-
-    document.addEventListener("fullscreenchange", updateFullscreenState);
-    return () => document.removeEventListener("fullscreenchange", updateFullscreenState);
-  }, []);
 
   useEffect(() => {
     const fetchVideo = async () => {
       try {
         setLoading(true);
         
-        // Vite injects the deployed API URL at build time. Keep the local
-        // fallback for development, but never hardcode localhost in production.
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
         let url;
         if (season && episode) {
@@ -33,8 +20,6 @@ const VideoPlayer = () => {
         } else {
           url = `${apiUrl}/video/embed/movie/${tmdbId}?sub=en`;
         }
-
-        console.log("Fetching:", url);
 
         const response = await fetch(url, {
           credentials: 'include',
@@ -72,18 +57,6 @@ const VideoPlayer = () => {
       setLoading(false);
     }
   }, [tmdbId, season, episode, navigate]);
-
-  const toggleFullscreen = async () => {
-    try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      } else {
-        await playerRef.current?.requestFullscreen();
-      }
-    } catch (fullscreenError) {
-      console.error("Unable to enter fullscreen:", fullscreenError);
-    }
-  };
 
   if (loading) {
     return (
@@ -134,7 +107,15 @@ const VideoPlayer = () => {
   }
 
   return (
-    <div style={{ width: '100%', height: '100vh', background: '#000', position: 'relative' }}>
+    <div style={{ 
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw', 
+      height: '100vh', 
+      background: '#000', 
+      overflow: 'hidden'
+    }}>
       <button 
         onClick={() => navigate("/")}
         style={{ 
@@ -145,18 +126,30 @@ const VideoPlayer = () => {
           background: 'rgba(0,0,0,0.7)',
           color: 'white',
           border: 'none',
-          padding: '10px 20px',
-          borderRadius: '4px',
+          padding: '10px',
+          width: '40px',
+          height: '40px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '50%',
           cursor: 'pointer',
-          fontSize: '16px'
+          fontSize: '24px',
+          fontWeight: 'bold',
+          lineHeight: 1,
+          fontFamily: 'monospace'
         }}
+        aria-label="Go back"
       >
-        ← Back to Home
+        &lt;
       </button>
       {embedUrl && (
         <iframe
           src={embedUrl}
           style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
             width: '100%',
             height: '100%',
             border: 'none'
@@ -164,7 +157,7 @@ const VideoPlayer = () => {
           allowFullScreen
           frameBorder="0"
           title="Video Player"
-          allow="autoplay; fullscreen; picture-in-picture"
+          allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
         />
       )}
     </div>
