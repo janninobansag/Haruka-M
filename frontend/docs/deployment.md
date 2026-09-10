@@ -8,6 +8,7 @@ This guide deploys the Haruka web client and API:
 - The web frontend is installable as a PWA from supported browsers; its service worker caches only the app shell and never caches API responses.
 - The navbar's **Install app** action opens the browser install prompt when available and explains the manual Add to Home Screen path on unsupported browsers such as iOS Safari.
 - On narrow screens, the navbar collapses into a hamburger menu containing Discover, My List, Install app, and permitted Admin Studio actions.
+- The playback page provides its own **Fullscreen** control, which expands the Haruka player surface to the browser viewport. Letterboxing that belongs to an externally embedded video remains controlled by that provider and the source video's aspect ratio.
 
 If Brave shows “Failed to read the app data. Cannot start the app,” remove the old Haruka installed app/shortcut, clear the site's stored data, reload the HTTPS site, and install it again. The PWA manifest uses a stable `/` app ID so future updates resolve to the same installed app.
 
