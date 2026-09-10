@@ -134,24 +134,33 @@ const VideoPlayer = () => {
   }
 
   return (
-    <div ref={playerRef} className="video-player-page">
+    <div style={{ width: '100%', height: '100vh', background: '#000', position: 'relative' }}>
       <button 
         onClick={() => navigate("/")}
-        className="video-player-back"
+        style={{ 
+          position: 'absolute', 
+          top: '20px', 
+          left: '20px', 
+          zIndex: 1000, 
+          background: 'rgba(0,0,0,0.7)',
+          color: 'white',
+          border: 'none',
+          padding: '10px 20px',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontSize: '16px'
+        }}
       >
         ← Back to Home
-      </button>
-      <button
-        onClick={toggleFullscreen}
-        className="video-player-fullscreen"
-        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-      >
-        {isFullscreen ? "Exit fullscreen" : "Fullscreen"}
       </button>
       {embedUrl && (
         <iframe
           src={embedUrl}
-          className="video-player-frame"
+          style={{
+            width: '100%',
+            height: '100%',
+            border: 'none'
+          }}
           allowFullScreen
           frameBorder="0"
           title="Video Player"
