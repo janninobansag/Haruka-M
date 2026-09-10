@@ -56,8 +56,10 @@ Create a Vercel project connected to the same repository:
 Add this Vercel environment variable:
 
 ```text
-VITE_API_URL=https://<your-api-domain>/api
+VITE_API_URL=/api
 ```
+
+The Vercel rewrite proxies `/api/*` to the Render API. Keeping web API calls same-origin allows session cookies to persist in browsers that restrict third-party cookies, including Brave. The mobile app continues using the full Render URL in `EXPO_PUBLIC_API_URL`.
 
 After the first deployment, copy the final Vercel URL into the backend `CLIENT_URL`, then redeploy the backend. Test sign-in, approval, My List, Admin Studio, and trailer playback from the deployed web URL.
 
