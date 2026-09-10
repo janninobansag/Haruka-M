@@ -4,9 +4,9 @@
 
 Haruka is a Netflix-inspired movie streaming platform with its own visual identity and curated content experience. Visitors can discover movies, view trailers and details, and create an account. Signed-in users can manage a profile, maintain a watchlist, and continue watching authorized content. Administrators manage the catalog and users.
 
-Haruka also includes an Expo/React Native mobile companion in `mobile/`. It consumes the existing Express API for discovery, trailers, account approval-aware sign-in, My List, and Recently Explored. The mobile client uses a dedicated 30-day bearer token stored only in Expo SecureStore; browser HTTP-only cookies are not reused as a mobile credential.
+Haruka is delivered as a responsive web client and installable PWA. It consumes the Express API through Vercel's same-origin `/api` rewrite, while browser sessions use HTTP-only cookies.
 
-The mobile navigation displays a human-profile icon for authenticated accounts. It opens profile and password controls; admins and super admins additionally receive a role-gated mobile Admin Studio that calls the same `/api/admin` endpoints as the web client. My List removal uses the ownership-protected `DELETE /api/me/watchlist/:tmdbId?type=movie|tv` endpoint and removes the card locally after a successful response.
+The responsive navigation displays a human-profile icon for authenticated accounts and collapses to a hamburger menu on narrow screens. My List removal uses the ownership-protected `DELETE /api/me/watchlist/:tmdbId?type=movie|tv` endpoint and removes the card locally after a successful response.
 
 Haruka must only deliver media it owns or is licensed to distribute. Video files are stored and streamed through object storage and a CDN; they are not stored in MongoDB.
 
