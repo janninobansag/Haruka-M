@@ -13,6 +13,10 @@ export default function AdminStudio({ currentUser, onClose, onChanged }) {
     .catch((err) => setError(err.message));
 
   useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const interval = window.setInterval(load, 60_000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   const add = async (event) => {
     event.preventDefault();
@@ -89,7 +93,7 @@ export default function AdminStudio({ currentUser, onClose, onChanged }) {
         {!titles.length && !error && <p className="empty-rail">No exclusive titles yet.</p>}
       </div>
       <section className="admin-users"><p className="eyebrow">TEAM ACCESS</p><h3>Haruka users</h3>
-        {users.map((account) => <div className="admin-user" key={account.id}>
+        {users.map((account) => <div className={`admin-user ${account.isOnline ? "is-online" : "is-offline"}`} key={account.id}>
           <span><strong>{account.name}</strong><small>{account.email} · {account.role === "superadmin" ? "Super Admin" : account.role === "admin" ? "Admin" : "Member"} · {userStatus(account)}</small></span>
           {canManageUser(account) && <div className="user-actions">
             {account.role === "user" && account.approvalStatus === "pending" && <button className="status-user" onClick={() => approveAccount(account)}>Approve</button>}

@@ -9,6 +9,7 @@ import { card, tmdb } from "../services/tmdb.service.js";
 
 const router = Router();
 router.use(requireDatabase, requireAuth, requireRole("admin"));
+const ONLINE_WINDOW_MS = 2 * 60 * 1000;
 const canManageAccount = (actor, target) => actor._id.toString() !== target._id.toString()
   && ((actor.role === "superadmin" && target.role !== "superadmin") || (actor.role === "admin" && target.role === "user"));
 
@@ -20,7 +21,8 @@ router.get("/exclusives", async (_, res, next) => {
 router.get("/users", async (_, res, next) => {
   try {
     const users = await User.find().sort({ createdAt: -1 });
-    res.json({ results: users.map((user) => ({ id: user._id, name: user.name, email: user.email, role: user.role, isActive: user.isActive, approvalStatus: isApprovedAccount(user) ? "approved" : "pending", createdAt: user.createdAt })) });
+    const now = Date.now();
+    res.json({ results: users.map((user) => ({ id: user._id, name: user.name, email: user.email, role: user.role, isActive: user.isActive, approvalStatus: isApprovedAccount(user) ? "approved" : "pending", createdAt: user.createdAt, isOnline: Boolean(user.lastActiveAt && now - user.lastActiveAt.getTime() < ONLINE_WINDOW_MS) })) });
   } catch (error) { next(error); }
 });
 

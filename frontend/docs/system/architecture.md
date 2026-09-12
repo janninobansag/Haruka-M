@@ -342,6 +342,7 @@ The endpoints below are currently implemented in the Haruka codebase. They are t
 | POST | `/auth/signin` | Public | Verifies credentials and creates a secure cookie session. |
 | POST | `/auth/signout` | User/Admin | Clears the Haruka session cookie. |
 | GET | `/auth/me` | User/Admin | Restores the current session and returns safe user fields. |
+| POST | `/auth/presence` | User/Admin | Records recent visible-app activity. Admin Studio treats activity within two minutes as online. |
 | PATCH | `/auth/me` | User/Admin | Updates the signed-in user's display name. |
 | PATCH | `/auth/me/password` | User/Admin | Verifies the current password and updates the signed-in user's password hash. |
 | GET | `/discover/trending` | Public | TMDB daily trending titles. |
