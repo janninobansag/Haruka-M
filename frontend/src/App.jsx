@@ -10,7 +10,7 @@ import TrailerModal from "./components/TrailerModal";
 import AccountModal from "./components/AccountModal";
 import CollectionModal from "./components/CollectionModal";
 import VideoPlayer from "./components/VideoPlayer";
-import { addWatchlistItem, auth, getCollection, getRecentlyViewed, getSession, saveRecentlyViewed } from "./services/api";
+import { addWatchlistItem, auth, getCollection, getRecentlyViewed, getSession, markPresence, saveRecentlyViewed } from "./services/api";
 import "./styles/app.css";
 
 const rails = [
@@ -42,6 +42,19 @@ function HomePage() {
 
   useEffect(() => { getSession().then(setUser).catch(() => setUser(null)); }, []);
   useEffect(() => { if (!user) { setRecentTitles([]); return undefined; } getRecentlyViewed().then(setRecentTitles).catch(() => setRecentTitles([])); return undefined; }, [user]);
+  useEffect(() => {
+    if (!user) return undefined;
+    const sendPresence = () => {
+      if (document.visibilityState === "visible") markPresence().catch(() => {});
+    };
+    sendPresence();
+    const interval = window.setInterval(sendPresence, 60_000);
+    document.addEventListener("visibilitychange", sendPresence);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", sendPresence);
+    };
+  }, [user]);
 
   useEffect(() => {
     let active = true;

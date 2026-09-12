@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { markPresence } from "../services/api";
 
 const VideoPlayer = () => {
   const { tmdbId, season, episode } = useParams();
@@ -7,6 +8,19 @@ const VideoPlayer = () => {
   const [embedUrl, setEmbedUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const sendPresence = () => {
+      if (document.visibilityState === "visible") markPresence().catch(() => {});
+    };
+    sendPresence();
+    const interval = window.setInterval(sendPresence, 60_000);
+    document.addEventListener("visibilitychange", sendPresence);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", sendPresence);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchVideo = async () => {

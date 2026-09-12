@@ -21,6 +21,7 @@ function startSession(res, user, rememberMe) {
   res.cookie("haruka_session", token, cookieOptions(rememberMe));
 }
 const createMobileToken = (user) => jwt.sign({ sub: user._id, role: user.role, client: "mobile" }, process.env.JWT_SECRET, { expiresIn: "30d" });
+const markActive = (user) => User.updateOne({ _id: user._id }, { lastActiveAt: new Date() });
 
 router.post("/signup", requireDatabase, async (req, res, next) => {
   try {
@@ -43,6 +44,7 @@ router.post("/signin", requireDatabase, async (req, res, next) => {
     if (!isApprovedAccount(user)) return res.status(403).json({ message: "Your account is awaiting approval from an administrator.", code: "ACCOUNT_PENDING_APPROVAL" });
     const rememberMe = req.body.rememberMe === true;
     startSession(res, user, rememberMe);
+    await markActive(user);
     res.json({ user: safeUser(user) });
   } catch (error) { next(error); }
 });
@@ -53,12 +55,19 @@ router.post("/mobile/signin", requireDatabase, async (req, res, next) => {
     const user = await User.findOne({ email }).select("+passwordHash");
     if (!user || !user.isActive || !(await bcrypt.compare(req.body.password || "", user.passwordHash))) return res.status(401).json({ message: "Email or password is incorrect.", code: "INVALID_CREDENTIALS" });
     if (!isApprovedAccount(user)) return res.status(403).json({ message: "Your account is awaiting approval from an administrator.", code: "ACCOUNT_PENDING_APPROVAL" });
+    await markActive(user);
     res.json({ user: safeUser(user), token: createMobileToken(user) });
   } catch (error) { next(error); }
 });
 
 router.post("/signout", (_, res) => { res.clearCookie("haruka_session", { httpOnly: true, sameSite: isProduction ? "none" : "lax", secure: isProduction }); res.status(204).end(); });
 router.get("/me", requireDatabase, requireAuth, (req, res) => res.json({ user: safeUser(req.user) }));
+router.post("/presence", requireDatabase, requireAuth, async (req, res, next) => {
+  try {
+    await markActive(req.user);
+    res.status(204).end();
+  } catch (error) { next(error); }
+});
 router.patch("/me", requireDatabase, requireAuth, async (req, res, next) => {
   try {
     const name = req.body.name?.trim();

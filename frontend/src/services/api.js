@@ -22,6 +22,11 @@ export async function getSession() {
   return data.user;
 }
 
+export async function markPresence() {
+  const response = await fetch(`${apiUrl}/auth/presence`, { method: "POST", credentials: "include" });
+  if (!response.ok && response.status !== 401) throw new Error("Could not update presence.");
+}
+
 export async function updateProfile(profile) {
   const response = await fetch(`${apiUrl}/auth/me`, { method: "PATCH", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(profile) });
   const data = await response.json();
