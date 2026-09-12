@@ -45,6 +45,7 @@
 - Admins can deactivate/reactivate and permanently delete standard users only. Super admins can also deactivate/reactivate and permanently delete admin accounts. Neither role can take these actions on a super-admin account.
 - Admins and super admins can approve pending standard-user registrations from Admin Studio; public registration never grants administrator access, and admin/super-admin accounts bypass member approval.
 - Only super admins can promote or demote a user or admin through Admin Studio; no account can change its own role.
+- Admin Studio user rows preserve role and account actions on narrow screens; long names and account details truncate with an ellipsis.
 - A signed-in user can update their display name and change their password after supplying their current password.
 - A signed-in user can see recently opened titles in a private Recently Explored rail.
 - Recently Explored records expire 10 days after the title was last opened, limiting retained history and database growth.
