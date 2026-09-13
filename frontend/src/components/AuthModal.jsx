@@ -41,12 +41,12 @@ export default function AuthModal({ mode, onClose, onSuccess, onModeChange }) {
       {signup && <label>Name<input required minLength="2" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Your name" /></label>}
       <label>Email<input required type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder="you@example.com" /></label>
       {!forgot && <label>Password<input required minLength="8" type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} placeholder="At least 8 characters" /></label>}
-      {!signup && !forgot && <label className="remember-me"><input type="checkbox" checked={form.rememberMe} onChange={(event) => setForm({ ...form, rememberMe: event.target.checked })} /> <span>Remember me for 30 days</span></label>}
-      {!signup && !forgot && <button type="button" className="forgot-password-link" onClick={() => onModeChange("forgot")}>Forgot password?</button>}
+      {!signup && !forgot && <div className="auth-options"><label className="remember-me"><input type="checkbox" checked={form.rememberMe} onChange={(event) => setForm({ ...form, rememberMe: event.target.checked })} /> <span>Remember me for 30 days</span></label><button type="button" className="forgot-password-link" onClick={() => onModeChange("forgot")}>Forgot password?</button></div>}
       {error && <p className="auth-error">{error}</p>}
       {notice && <p className="auth-notice">{notice}</p>}
       <button className="play-button auth-submit" disabled={busy}>{busy ? "Please wait..." : forgot ? "Send reset link" : signup ? "Create account" : "Sign in"}</button>
-      {!signup && !forgot && <div className="auth-secondary auth-secondary-right"><button type="button" onClick={() => onModeChange("signup")}>Create account</button></div>}
+      {!signup && !forgot && <div className="auth-secondary"><button type="button" onClick={() => onModeChange("signup")}>Create account</button></div>}
+      {signup && <div className="auth-secondary"><button type="button" onClick={() => onModeChange("signin")}>Sign in</button></div>}
       {forgot && <div className="auth-secondary"><button type="button" onClick={() => onModeChange("signin")}>Back to sign in</button></div>}
     </form>
   </div>;
