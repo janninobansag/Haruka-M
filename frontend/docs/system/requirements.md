@@ -47,6 +47,7 @@
 - Only super admins can promote or demote a user or admin through Admin Studio; no account can change its own role.
 - Admin Studio user rows preserve role and account actions on narrow screens; long names and account details truncate with an ellipsis.
 - Admin Studio shows an online-presence dot beside every user: green means the account has been active in Haruka within the past two minutes; gray means it has not.
+- The footer provides contact links for email and Facebook, with layouts that wrap cleanly on narrow screens.
 - A signed-in user can update their display name and change their password after supplying their current password.
 - A signed-in user can see recently opened titles in a private Recently Explored rail.
 - Recently Explored records expire 10 days after the title was last opened, limiting retained history and database growth.
