@@ -2,7 +2,9 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
+import RecentlyViewed from "../models/RecentlyViewed.js";
 import User from "../models/User.js";
+import WatchlistItem from "../models/WatchlistItem.js";
 import { isApprovedAccount, requireAuth } from "../middleware/auth.middleware.js";
 import { requireDatabase } from "../middleware/database.middleware.js";
 import { sendPasswordResetEmail } from "../services/mail.service.js";
@@ -125,6 +127,17 @@ router.patch("/me/password", requireDatabase, requireAuth, async (req, res, next
     if (!user || !(await bcrypt.compare(currentPassword, user.passwordHash))) return res.status(401).json({ message: "Your current password is incorrect.", code: "INVALID_CREDENTIALS" });
     user.passwordHash = await bcrypt.hash(newPassword, 12);
     await user.save();
+    res.status(204).end();
+  } catch (error) { next(error); }
+});
+router.delete("/me", requireDatabase, requireAuth, async (req, res, next) => {
+  try {
+    await Promise.all([
+      WatchlistItem.deleteMany({ userId: req.user._id }),
+      RecentlyViewed.deleteMany({ userId: req.user._id }),
+      User.deleteOne({ _id: req.user._id })
+    ]);
+    res.clearCookie("haruka_session", { httpOnly: true, sameSite: isProduction ? "none" : "lax", secure: isProduction });
     res.status(204).end();
   } catch (error) { next(error); }
 });

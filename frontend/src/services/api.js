@@ -41,6 +41,13 @@ export async function changePassword(passwords) {
   if (!response.ok) throw new Error(data.message || "Could not change your password.");
 }
 
+export async function deleteMyAccount() {
+  const response = await fetch(`${apiUrl}/auth/me`, { method: "DELETE", credentials: "include" });
+  if (response.status === 204) return;
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || "Could not delete your account.");
+}
+
 async function adminRequest(path, options = {}) {
   const response = await fetch(`${apiUrl}/admin${path}`, { credentials: "include", ...options, headers: { "Content-Type": "application/json", ...options.headers } });
   const data = response.status === 204 ? null : await response.json();
