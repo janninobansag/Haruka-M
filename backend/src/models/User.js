@@ -7,7 +7,9 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ["user", "admin", "superadmin"], default: "user" },
   isActive: { type: Boolean, default: true },
   approvalStatus: { type: String, enum: ["pending", "approved"], default: "pending" },
-  lastActiveAt: { type: Date, default: null }
+  lastActiveAt: { type: Date, default: null },
+  passwordResetTokenHash: { type: String, select: false },
+  passwordResetExpiresAt: { type: Date, select: false }
 }, { timestamps: true });
 
 export default mongoose.model("User", userSchema);

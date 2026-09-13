@@ -340,6 +340,8 @@ The endpoints below are currently implemented in the Haruka codebase. They are t
 | GET | `/health` | Public | Returns API health status. |
 | POST | `/auth/signup` | Public | Creates a MongoDB user with role `user`, hashes the password, and creates a secure cookie session. |
 | POST | `/auth/signin` | Public | Verifies credentials and creates a secure cookie session. |
+| POST | `/auth/forgot-password` | Public | Creates a single-use, 30-minute reset token for a matching account and sends the reset link through SMTP. Returns a generic response to prevent email enumeration. |
+| POST | `/auth/reset-password` | Public | Validates an unexpired reset token, stores the new password hash, and invalidates the token. |
 | POST | `/auth/signout` | User/Admin | Clears the Haruka session cookie. |
 | GET | `/auth/me` | User/Admin | Restores the current session and returns safe user fields. |
 | POST | `/auth/presence` | User/Admin | Records recent visible-app activity. Admin Studio treats activity within two minutes as online. |
