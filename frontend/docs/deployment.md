@@ -42,12 +42,9 @@ TMDB_API_KEY=<your TMDB API key>
 TMDB_BASE_URL=https://api.themoviedb.org/3
 TMDB_IMAGE_BASE_URL=https://image.tmdb.org/t/p
 CLIENT_URL=https://<your-vercel-domain>
-SMTP_HOST=<your SMTP host, for example smtp.gmail.com>
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=<your SMTP username>
-SMTP_PASS=<your SMTP password or Gmail App Password>
-SMTP_FROM=Haruka <no-reply@your-domain>
+BREVO_API_KEY=<your Brevo API key>
+BREVO_SENDER_EMAIL=<your verified Brevo sender email>
+BREVO_SENDER_NAME=Haruka
 ```
 
 Do not hard-code `PORT`; Render provides it. Verify `https://<your-api-domain>/api/health` returns a healthy Haruka API response.
@@ -72,9 +69,7 @@ After the first deployment, copy the final Vercel URL into the backend `CLIENT_U
 
 ### Password-reset email
 
-Haruka sends password-reset links through SMTP. Configure every `SMTP_*` value above as a Render secret. For Gmail, enable two-step verification and create a dedicated **App Password**; do not use your normal Gmail password. The reset link points to `CLIENT_URL/reset-password`, expires after 30 minutes, and is single-use.
-
-The mail transport resolves the SMTP host to IPv4 before connecting because some Render outbound networks do not route IPv6 SMTP addresses. Keep `SMTP_HOST` as the provider hostname (for Gmail, `smtp.gmail.com`); do not replace it with a hard-coded IP address.
+Haruka sends password-reset links through Brevo's HTTPS API. Configure every `BREVO_*` value above as a Render secret. Verify `BREVO_SENDER_EMAIL` in Brevo before deploying. The reset link points to `CLIENT_URL/reset-password`, expires after 30 minutes, and is single-use. This API uses HTTPS rather than SMTP, so it works on Render's Free web-service plan.
 
 ## Smoke-test checklist
 
