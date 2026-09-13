@@ -48,10 +48,10 @@
 - Admin Studio user rows preserve role and account actions on narrow screens; long names and account details truncate with an ellipsis.
 - Admin Studio shows an online-presence dot beside every user: green means the account has been active in Haruka within the past two minutes; gray means it has not.
 - The footer provides accessible icon-only contact links for email and Facebook, with layouts that wrap cleanly on narrow screens.
-- The sign-in panel aligns Remember me with Forgot password and centers Create account beneath Sign in. The sign-up and reset views center their Sign in return actions. Reset links are one-time, expire after 30 minutes, and are delivered through the configured SMTP provider without exposing whether an email address belongs to an account.
+- The sign-in panel aligns Remember me with Forgot password and centers Create account beneath Sign in. The sign-up and reset views center their Sign in return actions. Reset links are one-time, expire after 30 minutes, and are delivered through Brevo's configured email API without exposing whether an email address belongs to an account.
 - Signed-in users can permanently delete their own account from Profile after an explicit confirmation. This deletes their user record, My List, and Recently Explored history, then signs them out.
 - The Profile modal is independently scrollable when its account controls exceed the available viewport height.
-- Password-reset email delivery uses the SMTP provider's IPv4 address with TLS hostname validation, avoiding unsupported IPv6 outbound routes while retaining certificate verification.
+- Password-reset email delivery uses Brevo's HTTPS API, avoiding blocked SMTP ports on Render's Free web-service plan.
 - A signed-in user can update their display name and change their password after supplying their current password.
 - A signed-in user can see recently opened titles in a private Recently Explored rail.
 - Recently Explored records expire 10 days after the title was last opened, limiting retained history and database growth.
