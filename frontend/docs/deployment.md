@@ -42,6 +42,12 @@ TMDB_API_KEY=<your TMDB API key>
 TMDB_BASE_URL=https://api.themoviedb.org/3
 TMDB_IMAGE_BASE_URL=https://image.tmdb.org/t/p
 CLIENT_URL=https://<your-vercel-domain>
+SMTP_HOST=<your SMTP host, for example smtp.gmail.com>
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=<your SMTP username>
+SMTP_PASS=<your SMTP password or Gmail App Password>
+SMTP_FROM=Haruka <no-reply@your-domain>
 ```
 
 Do not hard-code `PORT`; Render provides it. Verify `https://<your-api-domain>/api/health` returns a healthy Haruka API response.
@@ -63,6 +69,10 @@ VITE_API_URL=/api
 The Vercel rewrite proxies `/api/*` to the Render API. Keeping web API calls same-origin allows session cookies to persist in browsers that restrict third-party cookies, including Brave.
 
 After the first deployment, copy the final Vercel URL into the backend `CLIENT_URL`, then redeploy the backend. Test sign-in, approval, My List, Admin Studio, and trailer playback from the deployed web URL.
+
+### Password-reset email
+
+Haruka sends password-reset links through SMTP. Configure every `SMTP_*` value above as a Render secret. For Gmail, enable two-step verification and create a dedicated **App Password**; do not use your normal Gmail password. The reset link points to `CLIENT_URL/reset-password`, expires after 30 minutes, and is single-use.
 
 ## Smoke-test checklist
 

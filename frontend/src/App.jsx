@@ -10,6 +10,7 @@ import TrailerModal from "./components/TrailerModal";
 import AccountModal from "./components/AccountModal";
 import CollectionModal from "./components/CollectionModal";
 import VideoPlayer from "./components/VideoPlayer";
+import ResetPassword from "./components/ResetPassword";
 import { addWatchlistItem, auth, getCollection, getRecentlyViewed, getSession, markPresence, saveRecentlyViewed } from "./services/api";
 import "./styles/app.css";
 
@@ -120,7 +121,7 @@ function HomePage() {
     <div className="catalog" id="collections">{user && recentTitles.length > 0 && <MovieRail title="Recently Explored" label="PICK UP WHERE YOU LEFT OFF" movies={recentTitles.map((title) => ({ ...title, id: title.tmdbId }))} loading={false} error="" onSelect={openTitle} />}{rails.map(([key, title, label]) => <MovieRail key={key} title={title} label={label} movies={catalog[key] || []} loading={!error && !catalog[key]} error={error} onSelect={openTitle} onExploreAll={() => setCollectionView({ key, title, label, movies: catalog[key] || [] })} />)}</div>
     <footer><div><strong>HARUKA</strong><span>— made for your next favorite story.</span></div><div className="footer-contact"><a href="mailto:janninobansag@gmail.com" aria-label="Email Haruka" title="Email Haruka"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></svg></a><a href="https://www.facebook.com/janninoandrie.bansag/" target="_blank" rel="noreferrer" aria-label="Haruka on Facebook" title="Haruka on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.6 21v-8h2.7l.4-3.1h-3.1V7.9c0-.9.3-1.5 1.6-1.5h1.7V3.6c-.3 0-1.3-.1-2.4-.1-2.4 0-4.1 1.5-4.1 4.2v2.2H8v3.1h2.4v8h3.2Z" /></svg></a></div></footer>
     <TitleModal movie={selected} onClose={() => setSelected(null)} onSave={saveTitle} onTrailer={setTrailerTitle} onWatchNow={handleWatchNow} signedIn={Boolean(user)} canWatch={canWatch} />
-    {authMode && <AuthModal mode={authMode} onClose={() => setAuthMode(null)} onSuccess={(newUser) => { setUser(newUser); setAuthMode(null); }} />}
+    {authMode && <AuthModal mode={authMode} onClose={() => setAuthMode(null)} onModeChange={setAuthMode} onSuccess={(newUser) => { setUser(newUser); setAuthMode(null); }} />}
     {adminOpen && <AdminStudio currentUser={user} onClose={() => setAdminOpen(false)} onChanged={() => setCatalogVersion((version) => version + 1)} />}
     {listOpen && <MyListModal onClose={() => setListOpen(false)} onSelect={openTitle} />}
     {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} onSelect={openTitle} />}
@@ -137,6 +138,7 @@ export default function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/movie/watch/:tmdbId" element={<VideoPlayer />} />
         <Route path="/tv/watch/:tmdbId/:season/:episode" element={<VideoPlayer />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </BrowserRouter>
   );

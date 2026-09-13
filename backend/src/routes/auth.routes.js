@@ -1,9 +1,11 @@
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import { isApprovedAccount, requireAuth } from "../middleware/auth.middleware.js";
 import { requireDatabase } from "../middleware/database.middleware.js";
+import { sendPasswordResetEmail } from "../services/mail.service.js";
 
 const router = Router();
 const safeUser = (user) => ({ id: user._id, name: user.name, email: user.email, role: user.role, approvalStatus: isApprovedAccount(user) ? "approved" : "pending" });
@@ -57,6 +59,43 @@ router.post("/mobile/signin", requireDatabase, async (req, res, next) => {
     if (!isApprovedAccount(user)) return res.status(403).json({ message: "Your account is awaiting approval from an administrator.", code: "ACCOUNT_PENDING_APPROVAL" });
     await markActive(user);
     res.json({ user: safeUser(user), token: createMobileToken(user) });
+  } catch (error) { next(error); }
+});
+
+router.post("/forgot-password", requireDatabase, async (req, res, next) => {
+  const response = { message: "If an account exists for that email, a password-reset link has been sent." };
+  try {
+    const email = req.body.email?.trim().toLowerCase();
+    if (!email) return res.json(response);
+    const user = await User.findOne({ email });
+    if (!user) return res.json(response);
+
+    const token = crypto.randomBytes(32).toString("hex");
+    user.passwordResetTokenHash = crypto.createHash("sha256").update(token).digest("hex");
+    user.passwordResetExpiresAt = new Date(Date.now() + 30 * 60 * 1000);
+    await user.save();
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    await sendPasswordResetEmail({ to: user.email, resetUrl: `${clientUrl}/reset-password?token=${token}` });
+    return res.json(response);
+  } catch (error) {
+    // Preserve the same public response to prevent email-account enumeration.
+    console.error("Password reset email failed:", error.message);
+    return res.json(response);
+  }
+});
+
+router.post("/reset-password", requireDatabase, async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password || password.length < 8) return res.status(400).json({ message: "Enter a valid reset link and a password of at least 8 characters.", code: "INVALID_INPUT" });
+    const passwordResetTokenHash = crypto.createHash("sha256").update(token).digest("hex");
+    const user = await User.findOne({ passwordResetTokenHash, passwordResetExpiresAt: { $gt: new Date() } }).select("+passwordHash +passwordResetTokenHash +passwordResetExpiresAt");
+    if (!user) return res.status(400).json({ message: "This password-reset link is invalid or has expired.", code: "INVALID_RESET_TOKEN" });
+    user.passwordHash = await bcrypt.hash(password, 12);
+    user.passwordResetTokenHash = undefined;
+    user.passwordResetExpiresAt = undefined;
+    await user.save();
+    res.json({ message: "Your password has been reset. You can now sign in." });
   } catch (error) { next(error); }
 });
 
