@@ -74,6 +74,8 @@ After the first deployment, copy the final Vercel URL into the backend `CLIENT_U
 
 Haruka sends password-reset links through SMTP. Configure every `SMTP_*` value above as a Render secret. For Gmail, enable two-step verification and create a dedicated **App Password**; do not use your normal Gmail password. The reset link points to `CLIENT_URL/reset-password`, expires after 30 minutes, and is single-use.
 
+The mail transport resolves the SMTP host to IPv4 before connecting because some Render outbound networks do not route IPv6 SMTP addresses. Keep `SMTP_HOST` as the provider hostname (for Gmail, `smtp.gmail.com`); do not replace it with a hard-coded IP address.
+
 ## Smoke-test checklist
 
 - `GET /api/health` succeeds over HTTPS.
