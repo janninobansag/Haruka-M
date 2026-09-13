@@ -127,7 +127,7 @@ function HomePage() {
     {searchOpen && <SearchModal onClose={() => setSearchOpen(false)} onSelect={openTitle} />}
     {collectionView && <CollectionModal collection={collectionView.key} initialMovies={collectionView.movies} label={collectionView.label} title={collectionView.title} type={type} onClose={() => setCollectionView(null)} onSelect={openTitle} />}
     {trailerTitle && <TrailerModal title={trailerTitle} onClose={() => setTrailerTitle(null)} />}
-    {accountOpen && <AccountModal user={user} onClose={() => setAccountOpen(false)} onUpdate={(updated) => { setUser(updated); setAccountOpen(false); }} onSignOut={signOut} />}
+    {accountOpen && <AccountModal user={user} onClose={() => setAccountOpen(false)} onUpdate={(updated) => { setUser(updated); setAccountOpen(false); }} onSignOut={signOut} onDelete={() => { setUser(null); setAccountOpen(false); }} />}
   </main>;
 }
 

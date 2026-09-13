@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { changePassword, updateProfile } from "../services/api";
+import { changePassword, deleteMyAccount, updateProfile } from "../services/api";
 
-export default function AccountModal({ user, onClose, onUpdate, onSignOut }) {
+export default function AccountModal({ user, onClose, onUpdate, onSignOut, onDelete }) {
   const [name, setName] = useState(user.name);
   const [passwords, setPasswords] = useState({ currentPassword: "", newPassword: "" });
   const [error, setError] = useState("");
@@ -17,9 +17,16 @@ export default function AccountModal({ user, onClose, onUpdate, onSignOut }) {
     try { await changePassword(passwords); setPasswords({ currentPassword: "", newPassword: "" }); setNotice("Password updated successfully."); }
     catch (err) { setError(err.message); } finally { setBusy(false); }
   };
+  const removeAccount = async () => {
+    const confirmed = window.confirm("Permanently delete your Haruka account? Your My List and Recently Explored history will also be deleted. This cannot be undone.");
+    if (!confirmed) return;
+    setBusy(true); setError("");
+    try { await deleteMyAccount(); onDelete(); }
+    catch (err) { setError(err.message); } finally { setBusy(false); }
+  };
   return <div className="modal-backdrop" onClick={onClose} role="presentation"><section className="account-modal" onClick={(event) => event.stopPropagation()}>
     <button className="close" type="button" onClick={onClose} aria-label="Close">&times;</button><p className="eyebrow">YOUR HARUKA ACCOUNT</p><h2>Account</h2><div className="account-email">{user.email}</div><div className="role-badge">{user.role === "superadmin" ? "Super Admin" : user.role === "admin" ? "Admin" : "Member"}</div>
     <form onSubmit={save}><label>Display name<input required minLength="2" maxLength="60" value={name} onChange={(event) => setName(event.target.value)} /></label><button className="play-button auth-submit" disabled={busy}>{busy ? "Saving..." : "Save changes"}</button></form>
-    <section className="password-section"><p className="eyebrow">SECURITY</p><h3>Change password</h3><form onSubmit={savePassword}><label>Current password<input required type="password" value={passwords.currentPassword} onChange={(event) => setPasswords({ ...passwords, currentPassword: event.target.value })} /></label><label>New password<input required minLength="8" type="password" value={passwords.newPassword} onChange={(event) => setPasswords({ ...passwords, newPassword: event.target.value })} /></label><button className="more-button" disabled={busy}>{busy ? "Saving..." : "Update password"}</button></form></section>{error && <p className="auth-error">{error}</p>}{notice && <p className="account-notice">{notice}</p>}<button type="button" className="signout-button" onClick={onSignOut}>Sign out of Haruka</button>
+    <section className="password-section"><p className="eyebrow">SECURITY</p><h3>Change password</h3><form onSubmit={savePassword}><label>Current password<input required type="password" value={passwords.currentPassword} onChange={(event) => setPasswords({ ...passwords, currentPassword: event.target.value })} /></label><label>New password<input required minLength="8" type="password" value={passwords.newPassword} onChange={(event) => setPasswords({ ...passwords, newPassword: event.target.value })} /></label><button className="more-button" disabled={busy}>{busy ? "Saving..." : "Update password"}</button></form><button type="button" className="more-button profile-signout-button" onClick={onSignOut}>Sign out</button></section><section className="delete-account-section"><p className="eyebrow">ACCOUNT DATA</p><h3>Delete account</h3><p>This permanently removes your account, My List, and Recently Explored history.</p><button type="button" className="delete-account-button" onClick={removeAccount} disabled={busy}>{busy ? "Deleting..." : "Delete account permanently"}</button></section>{error && <p className="auth-error">{error}</p>}{notice && <p className="account-notice">{notice}</p>}
   </section></div>;
 }
