@@ -38,7 +38,7 @@ router.post("/watchlist", async (req, res, next) => {
     const tmdbId = Number(req.body.tmdbId);
     const mediaType = req.body.mediaType;
     if (!Number.isInteger(tmdbId) || tmdbId < 1 || !["movie", "tv"].includes(mediaType)) return res.status(400).json({ message: "Provide a valid title.", code: "INVALID_INPUT" });
-    const details = await tmdb(`/${mediaType}/${tmdbId}`);
+    const details = await tmdb(`/${mediaType}/${tmdbId}`, {}, { cache: false });
     const item = await WatchlistItem.create({ ...card(details, mediaType), tmdbId, mediaType, userId: req.user._id });
     res.status(201).json({ item });
   } catch (error) {

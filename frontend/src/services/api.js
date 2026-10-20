@@ -1,9 +1,23 @@
-const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+import { cachedPublicGetJson } from "./public-request.js";
+
+const apiUrl = import.meta.env?.VITE_API_URL || "http://localhost:5000/api";
+const MINUTE_MS = 60 * 1000;
+const HOUR_MS = 60 * MINUTE_MS;
+const DAY_MS = 24 * HOUR_MS;
+
+async function getJson(url, fallbackMessage) {
+  const response = await fetch(url);
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.message || fallbackMessage);
+  return data;
+}
 
 export async function getCollection(collection, type, page = 1) {
-  const response = await fetch(`${apiUrl}/discover/${collection}?type=${type}&page=${page}`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.message || "Could not load this collection.");
+  const url = `${apiUrl}/discover/${collection}?type=${type}&page=${page}`;
+  const ttlMs = collection === "trending" ? DAY_MS : 15 * MINUTE_MS;
+  const data = collection === "haruka-only"
+    ? await getJson(url, "Could not load this collection.")
+    : await cachedPublicGetJson(url, ttlMs, "Could not load this collection.");
   return data.results;
 }
 
@@ -77,22 +91,23 @@ export const getRecentlyViewed = () => libraryRequest("/recent").then((data) => 
 export const saveRecentlyViewed = (title) => libraryRequest("/recent", { method: "PUT", body: JSON.stringify(title) });
 
 export async function searchTitles(query, type) {
-  const response = await fetch(`${apiUrl}/search?query=${encodeURIComponent(query)}&type=${type}`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.message || "Search could not be completed.");
+  const url = `${apiUrl}/search?query=${encodeURIComponent(query)}&type=${type}`;
+  const data = await cachedPublicGetJson(url, 2 * MINUTE_MS, "Search could not be completed.");
   return data.results;
 }
 
 export async function getTrailer(title) {
-  const response = await fetch(`${apiUrl}/titles/${title.mediaType}/${title.id}/trailer`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.message || "Trailer could not be loaded.");
-  return data;
+  return cachedPublicGetJson(
+    `${apiUrl}/titles/${title.mediaType}/${title.id}/trailer`,
+    HOUR_MS,
+    "Trailer could not be loaded."
+  );
 }
 
 export async function getTitleDetails(title) {
-  const response = await fetch(`${apiUrl}/titles/${title.mediaType}/${title.id}`);
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.message || "Title details could not be loaded.");
-  return data;
+  return cachedPublicGetJson(
+    `${apiUrl}/titles/${title.mediaType}/${title.id}`,
+    HOUR_MS,
+    "Title details could not be loaded."
+  );
 }
