@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
-// Only regular members require approval. Existing accounts without a status remain approved.
+// Legacy regular members marked pending still need approval; missing statuses are treated as approved.
 export const isApprovedAccount = (user) => user?.role !== "user" || user?.approvalStatus !== "pending";
 
 export async function requireAuth(req, res, next) {

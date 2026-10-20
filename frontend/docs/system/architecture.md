@@ -129,9 +129,9 @@ TMDB genre IDs can differ by media type. Fetch and cache `/genre/movie/list` and
 
 | Role | Permissions |
 | --- | --- |
-| `user` | After approval: browse, search, view details/trailers, play authorized movies, save watchlist/progress, and manage own account. Before approval: title details and trailers only. |
-| `admin` | All approved-user permissions plus create, update, publish/unpublish, and remove Haruka catalog records. Admin accounts bypass member approval. Can approve, deactivate/reactivate, and permanently delete `user` accounts only. |
-| `superadmin` | All admin permissions. Super-admin accounts bypass member approval. Can manage roles for `user` and `admin` accounts, and approve, deactivate/reactivate, or permanently delete `admin` accounts. |
+| `user` | Browse, search, view details/trailers, play authorized movies, save watchlist/progress, and manage own account. New registrations are approved immediately; legacy pending accounts can only view public title information and trailers until approved. |
+| `admin` | All user permissions plus create, update, publish/unpublish, and remove Haruka catalog records. Can approve legacy pending `user` accounts, and deactivate or permanently delete `user` accounts. |
+| `superadmin` | All admin permissions. Can manage roles for `user` and `admin` accounts, and deactivate/reactivate or permanently delete `admin` accounts. |
 
 ### Initial super-admin setup
 
@@ -140,15 +140,15 @@ The application never creates a super admin through public registration. After c
 ### Sign-up flow
 
 1. Visitor submits name, email, and password at `/signup`.
-2. API validates input, ensures unique email, hashes password with bcrypt, and creates a user with role `user` and `approvalStatus: 'pending'`.
-3. API returns an awaiting-approval response without creating a session.
-4. An admin or super admin approves the regular-user account from Admin Studio before the person can sign in. Admin and super-admin accounts bypass this member-approval check.
+2. API validates input, ensures unique email, hashes the password with bcrypt, and creates an approved user with role `user`, ignoring any client-supplied role.
+3. API starts a session, marks the user active, and returns the safe profile with HTTP 201.
+4. The new user can immediately use authenticated features. Admin Studio approval remains available for legacy pending user accounts.
 
 ### Sign-in flow
 
 1. User submits email and password at `/signin`.
 2. API finds the user and compares password to the stored bcrypt hash.
-3. API rejects pending accounts with an awaiting-approval response; approved accounts receive a session token in a secure HTTP-only cookie and safe profile and role.
+3. API rejects legacy pending accounts with an awaiting-approval response; approved accounts receive a session token in a secure HTTP-only cookie and safe profile and role.
 4. Frontend restores the session on startup with `GET /api/auth/me`.
 
 ### Session policy
@@ -166,7 +166,7 @@ Request → security headers/CORS/JSON → rate limit → authenticate → autho
         → validate → controller → service → MongoDB/storage → error handler
 ```
 
-- `requireAuth` allows only active, approved authenticated accounts; a pending account cannot use protected APIs even if it has a stale session cookie.
+- `requireAuth` allows only active, approved authenticated accounts; a legacy pending account cannot use protected APIs even if it has a stale session cookie.
 - `requireRole('admin')` protects catalog writes and all `/admin` API actions; `superadmin` satisfies that minimum role.
 - User-management routes also verify the target account's role. An admin can only manage a `user`; a super admin can manage `user` and `admin` accounts. Super-admin accounts are protected from peer modification in Admin Studio.
 - Ownership checks restrict watchlists, progress, and account updates to their owner.
@@ -230,7 +230,7 @@ TMDB_IMAGE_BASE_URL=https://image.tmdb.org/t/p
 {
   _id, name, email, passwordHash,
   role, // 'user' | 'admin' | 'superadmin'; default 'user'
-  approvalStatus, // 'pending' | 'approved'; default 'pending'
+  approvalStatus, // 'pending' | 'approved'; default 'approved' (pending is retained for legacy accounts)
   avatarUrl, isActive, createdAt, updatedAt
 }
 ```

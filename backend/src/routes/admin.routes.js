@@ -56,7 +56,7 @@ router.patch("/users/:id/approval", async (req, res, next) => {
   try {
     const target = await User.findById(req.params.id);
     if (!target) return res.status(404).json({ message: "User not found.", code: "NOT_FOUND" });
-    if (target.role !== "user" || !canManageAccount(req.user, target)) return res.status(403).json({ message: "Only regular member accounts require approval.", code: "PROTECTED_ACCOUNT" });
+    if (target.role !== "user" || !canManageAccount(req.user, target)) return res.status(403).json({ message: "Only legacy pending member accounts require approval.", code: "PROTECTED_ACCOUNT" });
     const user = await User.findByIdAndUpdate(req.params.id, { approvalStatus: "approved" }, { new: true, runValidators: true });
     res.json({ user: { id: user._id, name: user.name, email: user.email, role: user.role, isActive: user.isActive, approvalStatus: user.approvalStatus } });
   } catch (error) { next(error); }

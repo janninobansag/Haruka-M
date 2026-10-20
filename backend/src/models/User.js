@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   passwordHash: { type: String, required: true, select: false },
   role: { type: String, enum: ["user", "admin", "superadmin"], default: "user" },
   isActive: { type: Boolean, default: true },
-  approvalStatus: { type: String, enum: ["pending", "approved"], default: "pending" },
+  approvalStatus: { type: String, enum: ["pending", "approved"], default: "approved" },
   lastActiveAt: { type: Date, default: null },
   passwordResetTokenHash: { type: String, select: false },
   passwordResetExpiresAt: { type: Date, select: false }
