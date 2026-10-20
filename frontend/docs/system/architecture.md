@@ -190,7 +190,7 @@ React frontend → Haruka API → TMDB API
 - Create a backend TMDB service responsible for all external TMDB requests, response normalization, timeouts, and error handling.
 - Expose Haruka endpoints such as `/api/discover`, `/api/search`, `/api/movies/:tmdbId`, and `/api/series/:tmdbId` to the frontend.
 - Use TMDB's `media_type` or separate movie/TV endpoints so the UI can clearly distinguish movies from series.
-- Persist `tmdbId` with each watchlist/progress record. Fetch fresh catalog details from TMDB when the user opens a title; add caching later if needed.
+- Persist `tmdbId` with each watchlist/progress record. Cache public title details and trailers for one hour; authenticated library and admin TMDB lookups bypass the cache.
 - Respect TMDB's attribution, branding, and usage requirements before production release. TMDB data does not grant rights to stream video content.
 
 ### Discovery mapping
@@ -210,7 +210,7 @@ The frontend requests a normalized endpoint rather than knowing TMDB paths. The 
 | `/api/discover/haruka-only?type=movie` | `movie` | Haruka MongoDB collection, filtered to published/exclusive movie titles. |
 | `/api/discover/haruka-only?type=tv` | `tv` | Haruka MongoDB collection, filtered to published/exclusive series titles. |
 
-The `type` query must only accept `movie` or `tv`; reject other values with `400 Bad Request`. Cache TMDB discovery results briefly (for example, 15–60 minutes) to improve speed and reduce API use. Trending content should refresh daily.
+The `type` query must only accept `movie` or `tv`; reject other values with `400 Bad Request`. Cache public TMDB discovery results for 15 minutes and trending results for 24 hours. Cache search results for two minutes and public title details and trailers for one hour. Keep the browser cache to 100 entries and the backend TMDB cache to 250 entries; both are in-memory and reset when the page reloads or backend restarts. Do not cache authentication, account, library, admin, or Haruka-exclusive catalog responses.
 
 ### Backend environment variables
 
