@@ -65,7 +65,7 @@ VITE_API_URL=/api
 
 The Vercel rewrite proxies `/api/*` to the Render API. Keeping web API calls same-origin allows session cookies to persist in browsers that restrict third-party cookies, including Brave.
 
-After the first deployment, copy the final Vercel URL into the backend `CLIENT_URL`, then redeploy the backend. Test sign-in, approval, My List, Admin Studio, and trailer playback from the deployed web URL.
+After the first deployment, copy the final Vercel URL into the backend `CLIENT_URL`, then redeploy the backend. Test registration, sign-in, My List, Admin Studio, and trailer playback from the deployed web URL.
 
 ### Password-reset email
 
@@ -78,6 +78,6 @@ Haruka sends password-reset links through Brevo's HTTPS API. Configure every `BR
 - Web discovery uses the deployed API URL.
 - Web title playback requests use `VITE_API_URL` rather than a localhost fallback after a production rebuild.
 - Cross-site production sessions use secure `SameSite=None` cookies so the Vercel frontend can authenticate with the Render API.
-- A new member remains pending until Admin Studio approves the account.
+- A new member is approved and signed in immediately after registration.
 - Admin and super-admin restrictions still apply.
 - No `.env`, password, TMDB key, or JWT secret appears in the repository or client bundle.

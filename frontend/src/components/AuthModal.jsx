@@ -20,10 +20,6 @@ export default function AuthModal({ mode, onClose, onSuccess, onModeChange }) {
         setNotice(result.message);
         return;
       }
-      if (result.pendingApproval) {
-        setError(result.message);
-        return;
-      }
       onSuccess(result.user);
     } catch (requestError) {
       setError(requestError.message);

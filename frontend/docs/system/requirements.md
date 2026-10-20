@@ -3,9 +3,9 @@
 ## Functional requirements
 
 - Visitors can view published movie information, genres, and trailers.
-- Visitors can create an account with name, email, and password; new regular `user` accounts await approval from an admin or super admin. Admin and super-admin accounts do not require member approval.
-- Visitors and pending accounts can browse title information and trailers only.
-- Approved users can sign in/out, browse, search, manage a watchlist, play authorized content, and resume viewing.
+- Visitors can create an account with name, email, and password; new regular `user` accounts are approved and signed in immediately. Public registration never creates admin or super-admin accounts.
+- Visitors can browse title information and trailers; legacy pending accounts remain limited to those public features until an admin approves them.
+- Active users can sign in/out, browse, search, manage a watchlist, play authorized content, and resume viewing.
 - The sign-in form provides a Remember me option that keeps a secure session for 30 days without storing the email or password in browser storage.
 - The responsive web client provides movie/series discovery, official trailer links, sign-up/sign-in, My List, and Recently Explored updates through the Haruka API.
 - The web client is installable as a PWA and provides a hamburger navigation on narrow screens.
@@ -43,7 +43,7 @@
 - Admins can add and remove titles in the Only on Haruka collection through Admin Studio.
 - Admins can publish or unpublish an Only on Haruka title; unpublished titles are hidden from public discovery.
 - Admins can deactivate/reactivate and permanently delete standard users only. Super admins can also deactivate/reactivate and permanently delete admin accounts. Neither role can take these actions on a super-admin account.
-- Admins and super admins can approve pending standard-user registrations from Admin Studio; public registration never grants administrator access, and admin/super-admin accounts bypass member approval.
+- Admins and super admins can approve legacy pending standard-user accounts from Admin Studio; new registrations are approved immediately, and public registration never grants administrator access.
 - Only super admins can promote or demote a user or admin through Admin Studio; no account can change its own role.
 - Admin Studio user rows preserve role and account actions on narrow screens; long names and account details truncate with an ellipsis.
 - Admin Studio shows an online-presence dot beside every user: green means the account has been active in Haruka within the past two minutes; gray means it has not.

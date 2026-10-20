@@ -35,8 +35,10 @@ router.post("/signup", requireDatabase, async (req, res, next) => {
     if (!name || !email || !password || password.length < 8) return res.status(400).json({ message: "Name, email, and a password of at least 8 characters are required.", code: "INVALID_INPUT" });
     if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ message: "Enter a valid email address.", code: "INVALID_EMAIL" });
     if (await User.exists({ email })) return res.status(409).json({ message: "An account already exists for this email.", code: "EMAIL_EXISTS" });
-    await User.create({ name, email, passwordHash: await bcrypt.hash(password, 12), approvalStatus: "pending" });
-    res.status(202).json({ pendingApproval: true, message: "Your account was created and is awaiting approval from an administrator." });
+    const user = await User.create({ name, email, passwordHash: await bcrypt.hash(password, 12), approvalStatus: "approved" });
+    await markActive(user);
+    startSession(res, user, req.body.rememberMe === true);
+    res.status(201).json({ user: safeUser(user) });
   } catch (error) { next(error); }
 });
 
