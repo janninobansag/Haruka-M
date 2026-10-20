@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import MovieRail from "./components/MovieRail";
 import TitleModal from "./components/TitleModal";
@@ -39,6 +39,9 @@ function HomePage() {
   const [collectionView, setCollectionView] = useState(null);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMenuMounted, setMobileMenuMounted] = useState(false);
+  const mobileMenuCloseTimer = useRef(null);
+  const mobileMenuOpenFrame = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => { getSession().then(setUser).catch(() => setUser(null)); }, []);
@@ -111,12 +114,71 @@ function HomePage() {
     setInstallPrompt(null);
   };
 
-  const closeMobileMenu = () => setMobileMenuOpen(false);
+  useEffect(() => () => {
+    window.clearTimeout(mobileMenuCloseTimer.current);
+    if (mobileMenuOpenFrame.current !== null) {
+      window.cancelAnimationFrame(mobileMenuOpenFrame.current);
+    }
+  }, []);
+
+  const openMobileMenu = () => {
+    window.clearTimeout(mobileMenuCloseTimer.current);
+    if (mobileMenuOpenFrame.current !== null) {
+      window.cancelAnimationFrame(mobileMenuOpenFrame.current);
+    }
+    setMobileMenuMounted(true);
+    mobileMenuOpenFrame.current = window.requestAnimationFrame(() => {
+      mobileMenuOpenFrame.current = window.requestAnimationFrame(() => {
+        setMobileMenuOpen(true);
+        mobileMenuOpenFrame.current = null;
+      });
+    });
+  };
+
+  const closeMobileMenu = () => {
+    window.clearTimeout(mobileMenuCloseTimer.current);
+    if (mobileMenuOpenFrame.current !== null) {
+      window.cancelAnimationFrame(mobileMenuOpenFrame.current);
+      mobileMenuOpenFrame.current = null;
+    }
+    setMobileMenuOpen(false);
+    mobileMenuCloseTimer.current = window.setTimeout(() => setMobileMenuMounted(false), 280);
+  };
 
   return <main>
-    <header className="nav"><a className="brand" href="#top" aria-label="Haruka home"><img src="/haruka-logo.png" alt="Haruka Cinema" /></a><nav><button className="install-button" onClick={installApp}>Install app</button><a href="#browse">Discover</a><button className="nav-list" onClick={() => user ? setListOpen(true) : setAuthMode("signin")}>My List</button></nav><div className="nav-actions"><button className="mobile-menu-button" onClick={() => setMobileMenuOpen(true)} aria-label="Open navigation" aria-expanded={mobileMenuOpen}><span /><span /><span /></button><button className="search" onClick={() => setSearchOpen(true)} aria-label="Search">⌕</button>{user ? <>{["admin", "superadmin"].includes(user.role) && <button className="admin-link" onClick={() => setAdminOpen(true)}>Admin Studio</button>}<button className="account-trigger" onClick={() => setAccountOpen(true)} title="Open account"><span>Hi, {user.name.split(" ")[0]}</span><span className="account-avatar" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="8" r="3.5" /><path d="M5.5 20c.7-3.5 3-5.3 6.5-5.3s5.8 1.8 6.5 5.3" /></svg></span></button></> : <button className="sign-in" onClick={() => setAuthMode("signin")}>Sign in</button>}</div></header>
-    {mobileMenuOpen && <><button className="mobile-menu-backdrop" onClick={closeMobileMenu} aria-label="Close navigation" /><aside className="mobile-drawer" aria-label="Mobile navigation"><button className="mobile-drawer-close" onClick={closeMobileMenu} aria-label="Close navigation">×</button><p className="eyebrow">HARUKA</p><a href="#browse" onClick={closeMobileMenu}>Discover</a><button onClick={() => { closeMobileMenu(); user ? setListOpen(true) : setAuthMode("signin"); }}>My List</button><button onClick={() => { closeMobileMenu(); installApp(); }}>Install app</button>{user && ["admin", "superadmin"].includes(user.role) && <button onClick={() => { closeMobileMenu(); setAdminOpen(true); }}>Admin Studio</button>}</aside></>}
-    <section className="hero" id="top" style={feature?.backdrop ? { backgroundImage: `url(${feature.backdrop})` } : {}}><video className="hero-video" autoPlay muted loop playsInline poster={feature?.backdrop || undefined}><source src="/hero.mp4" type="video/mp4" /></video><div className="hero-overlay" /><div className="hero-content"><p className="eyebrow">A NEW KIND OF NIGHT IN</p><h1>{feature?.title || "Stories worth staying up for."}</h1><p>{feature?.overview || "Haruka brings your favorite worlds together in one calm, cinematic space."}</p><div className="hero-actions"><button className="play-button" onClick={() => openTitle(feature)}>Explore title</button><button className="more-button" onClick={() => user ? setListOpen(true) : setAuthMode("signup")}>{user ? "My List" : "Join Haruka"}</button></div></div><div className="hero-orbit"><i /><i /><i /></div></section>
+    <header className="nav">
+      <a className="brand" href="#top" aria-label="Haruka home"><img src="/haruka-logo.png" alt="Haruka Cinema" /></a>
+      <nav>
+        <button className="install-button" onClick={installApp} aria-label="Install app" title="Install app"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v10m0 0 4-4m-4 4-4-4M5 15v5h14v-5" /></svg></button>
+        <a href="#browse">Discover</a>
+        <button className="nav-list" onClick={() => user ? setListOpen(true) : setAuthMode("signin")}>My List</button>
+      </nav>
+      <div className="nav-actions">
+        <button className="install-button mobile-install-button" onClick={installApp} aria-label="Install app" title="Install app"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v10m0 0 4-4m-4 4-4-4M5 15v5h14v-5" /></svg></button>
+        <button className="mobile-menu-button" onClick={openMobileMenu} aria-label="Open navigation" aria-expanded={mobileMenuOpen}><span /><span /><span /></button>
+        <button className="search" onClick={() => setSearchOpen(true)} aria-label="Search">⌕</button>
+        {user ? <>
+          {["admin", "superadmin"].includes(user.role) && <button className="admin-link" onClick={() => setAdminOpen(true)}>Admin Studio</button>}
+          <button className="account-trigger" onClick={() => setAccountOpen(true)} title="Open account">
+            <span>Hi, {user.name.split(" ")[0]}</span>
+            <span className="account-avatar" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="8" r="3.25" /><path d="M5.25 20c.55-3.5 2.8-5.5 6.75-5.5s6.2 2 6.75 5.5" /></svg>
+            </span>
+          </button>
+        </> : <button className="sign-in" onClick={() => setAuthMode("signin")}>Sign in</button>}
+      </div>
+    </header>
+    {mobileMenuMounted && <>
+      <button className={`mobile-menu-backdrop${mobileMenuOpen ? " is-open" : ""}`} onClick={closeMobileMenu} aria-label="Close navigation" />
+      <aside className={`mobile-drawer${mobileMenuOpen ? " is-open" : ""}`} aria-label="Mobile navigation" aria-hidden={!mobileMenuOpen}>
+        <button className="mobile-drawer-close" onClick={closeMobileMenu} aria-label="Close navigation">×</button>
+        <p className="eyebrow">HARUKA</p>
+        <a href="#browse" onClick={closeMobileMenu}>Discover</a>
+        <button onClick={() => { closeMobileMenu(); user ? setListOpen(true) : setAuthMode("signin"); }}>My List</button>
+        {user && ["admin", "superadmin"].includes(user.role) && <button onClick={() => { closeMobileMenu(); setAdminOpen(true); }}>Admin Studio</button>}
+      </aside>
+    </>}
+    <section className="hero" id="top" style={feature?.backdrop ? { backgroundImage: `url(${feature.backdrop})` } : {}}><video className="hero-video" autoPlay muted loop playsInline poster={feature?.backdrop || undefined}><source src="/hero.mp4" type="video/mp4" /></video><div className="hero-overlay" /><div className="hero-content"><p className="eyebrow">A NEW KIND OF NIGHT IN</p><h1>{feature?.title || "Stories worth staying up for."}</h1><p>{feature?.overview || "Haruka brings your favorite worlds together in one calm, cinematic space."}</p><div className="hero-actions"><button className="play-button" onClick={() => openTitle(feature)}>Explore title</button><button className="more-button" onClick={() => user ? setListOpen(true) : setAuthMode("signup")}>{user ? "My List" : "Join Haruka"}</button></div></div></section>
     <section className="switcher-wrap" id="browse"><div className="content-switcher"><span>Show me</span><button className={type === "movie" ? "active" : ""} onClick={() => setType("movie")}>Movies</button><button className={type === "tv" ? "active" : ""} onClick={() => setType("tv")}>Series</button></div></section>
     <div className="catalog" id="collections">{user && recentTitles.length > 0 && <MovieRail title="Recently Explored" label="PICK UP WHERE YOU LEFT OFF" movies={recentTitles.map((title) => ({ ...title, id: title.tmdbId }))} loading={false} error="" onSelect={openTitle} />}{rails.map(([key, title, label]) => <MovieRail key={key} title={title} label={label} movies={catalog[key] || []} loading={!error && !catalog[key]} error={error} onSelect={openTitle} onExploreAll={() => setCollectionView({ key, title, label, movies: catalog[key] || [] })} />)}</div>
     <footer><div><strong>HARUKA</strong><span>— made for your next favorite story.</span></div><div className="footer-contact"><a href="mailto:janninobansag@gmail.com" aria-label="Email Haruka" title="Email Haruka"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></svg></a><a href="https://www.facebook.com/janninoandrie.bansag/" target="_blank" rel="noreferrer" aria-label="Haruka on Facebook" title="Haruka on Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.6 21v-8h2.7l.4-3.1h-3.1V7.9c0-.9.3-1.5 1.6-1.5h1.7V3.6c-.3 0-1.3-.1-2.4-.1-2.4 0-4.1 1.5-4.1 4.2v2.2H8v3.1h2.4v8h3.2Z" /></svg></a></div></footer>
